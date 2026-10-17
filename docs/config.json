@@ -1,0 +1,19 @@
+{
+  "title": "FPL HSM Pharmacy Hub",
+  "department": "Farmasi Pesakit Luar",
+  "hospital": "Hospital Seri Manjung",
+  "modules": {
+    "planner": {
+      "name": "Planner Cuti FPL HSM",
+      "url": "https://script.google.com/macros/s/AKfycbxNq-mxRNQMUXTwTzSE2sEZxBOzGhblTX_rsN9dGF4-8doxDUducBQu2VMa0Dt6ACXq0g/exec"
+    },
+    "myubat": {
+      "name": "Carian No Rujukan MyUbat",
+      "url": "https://carian-nombor-rujukan-myubat.web.app/"
+    },
+    "katalog": {
+      "name": "Katalog Ubat FPL HSM",
+      "url": "https://katalog-ubat-opd-hsm.web.app/"
+    }
+  }
+}

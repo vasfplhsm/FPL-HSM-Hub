@@ -1,0 +1,10 @@
+import { mkdir, cp, writeFile } from 'node:fs/promises';
+import { loadConfig } from '../src/config.js';
+import { securityHeaders } from '../src/server.js';
+const destination = new URL('../dist/', import.meta.url);
+const config = await loadConfig(new URL('../src/config.js', import.meta.url));
+await mkdir(destination, { recursive: true });
+await cp(new URL('../public/', import.meta.url), destination, { recursive: true });
+await writeFile(new URL('config.json', destination), JSON.stringify(config, null, 2));
+await writeFile(new URL('_headers', destination), '/*\n' + Object.entries(securityHeaders).map(([key, value]) => `  ${key}: ${value}`).join('\n') + '\n');
+console.log('Built dist/: Hub assets and validated public application links only.');
