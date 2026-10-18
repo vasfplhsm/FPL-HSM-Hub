@@ -155,6 +155,7 @@ h2 { font-size: 20px; font-weight: 650; margin-bottom: 5px; }
 .privacy-note p { font-size: 12px; margin: 0; }
 .privacy-note strong { font-weight: 650; color: var(--text); }
 footer { border-top: 1px solid var(--border); padding: 20px 36px; display: flex; justify-content: space-between; gap: 15px; font-size: 11px; color: var(--muted); }
+.established { display: block; margin-top: 4px; font-size: inherit; letter-spacing: .05em; }
 .module-heading { display: flex; gap: 22px; align-items: center; margin: 35px 0; }
 .module-heading h1 { margin: 8px 0 12px; }
 .module-heading p { margin: 0; font-size: 14px; }

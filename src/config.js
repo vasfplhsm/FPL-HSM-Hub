@@ -15,7 +15,7 @@ export function validateConfig(input) {
   const text = (value, fallback) => typeof value === 'string' && value.trim() ? value.trim().slice(0, 120) : fallback;
   const defaults = { planner: 'Planner Cuti FPL HSM', myubat: 'Carian No Rujukan MyUbat', katalog: 'Katalog Ubat FPL HSM', formulary: 'Formulari HSM', farmasi: 'Portal Farmasi HSM' };
   return {
-    title: text(input.title, 'FPL HSM Pharmacy Hub'),
+    title: text(input.title, 'Farmasi Pesakit Luar HSM Pharmacy Hub'),
     department: text(input.department, 'Farmasi Pesakit Luar'),
     hospital: text(input.hospital, 'Hospital Seri Manjung'),
     modules: Object.fromEntries(moduleIds.map(id => [id, {

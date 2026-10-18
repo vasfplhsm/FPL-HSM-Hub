@@ -1,4 +1,4 @@
-# FPL HSM Pharmacy Hub
+# Farmasi Pesakit Luar HSM Pharmacy Hub
 
 A lightweight, responsive entry point for Farmasi Pesakit Luar, Hospital Seri Manjung. The Hub brings Planner Cuti, MyUbat reference search, Katalog Ubat, Formulari HSM and Portal Farmasi HSM into one navigation system. It uses plain HTML, CSS and JavaScript, with a small Node server for local development. No runtime packages, paid services or database migrations are required.
 
