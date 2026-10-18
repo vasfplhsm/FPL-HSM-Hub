@@ -65,6 +65,7 @@ config/local.json         Your machine's links; ignored by Git
 src/config.js             Public configuration validation
 src/server.js             Local server and security headers
 scripts/build.js          Static build; no bundler required
+firebase.json             Firebase Hosting directory, headers and Firestore rule path
 tests/hub.test.js          Node configuration and HTTP tests
 tests/announcements.test.js  Notice validation and read-only local endpoint
 tests/announcement-backend.test.js  Auth/mutation protocol tests with simulated responses
@@ -72,6 +73,7 @@ tests/browser.cjs          Optional browser regression checks
 tests/admin-browser.cjs    Admin UI tests with intercepted Firebase services
 firebase/firestore.rules   Server-enforced announcement and admin permissions
 docs/firebase-setup.md    Step-by-step Firebase setup
+docs/firebase-hosting.md  Desktop folder and Firebase Hosting deployment guide
 docs/announcements.json   Empty local fallback until Firebase is configured
 docs/integration.md       Inspection findings and integration boundaries
 docs/validation.md        Tested capabilities and limitations
@@ -88,7 +90,21 @@ Read [integration notes](docs/integration.md) before attempting deeper integrati
 
 ## Deployment and updates
 
-### GitHub Pages (public launcher)
+### Firebase Hosting (migration target)
+
+The project is prepared for Firebase Hosting using `firebase.json`, which uploads **only `dist/`** and applies the intended security headers. No Firebase project has been created or deployed yet. Start with the [Desktop and Firebase Hosting guide](docs/firebase-hosting.md), which includes project creation, admin setup and terminal commands.
+
+After creating your dedicated Firebase project, entering its public configuration in `config/local.json`, installing the Firebase CLI and signing in on your own computer:
+
+```sh
+npm test
+npm run build
+firebase deploy --only hosting --project YOUR_REAL_PROJECT_ID
+```
+
+Use your actual project ID. The existing configuration means `firebase init` is unnecessary. Hosting deployment does not change Firestore rules; set those in Firebase Console as described in the setup guide. Keep GitHub Pages available until the new site and live announcement permissions have been verified. After connection, publishing announcements through the admin editor needs no website redeployment.
+
+### GitHub Pages (existing site / optional backup)
 
 GitHub Pages serves this Hub publicly. It does not provide staff sign-in; the original applications must enforce their own authorization. Only branding and approved application links are included, with no patient records or legacy backend source.
 
@@ -111,7 +127,7 @@ Pages ignores `dist/_headers`. The HTML therefore includes a Content Security Po
 3. Review `dist/config.json`: it contains the branding and links that staff will receive.
 4. Upload **only `dist/`** to your approved internal static host, or run `npm start` behind an authenticated HTTPS reverse proxy. Keep source folders, uploaded attachments and local configuration files off the public host.
 5. Apply the response headers in `dist/_headers` using your host's header settings. `_headers` is supported by some static hosts; it is not automatically honored everywhere.
-6. Confirm access controls with your administrator, then test each application using an authorized staff account. The Hub contains no sign-in mechanism and is not an authentication boundary. MyUbat must enforce staff authorization itself. Obtain institutional approval before production use involving patient information.
+6. Confirm access controls with your administrator, then test each application using an authorized staff account. The Hub's admin sign-in protects announcement editing only; it does not authenticate users to MyUbat or the other original applications. MyUbat must enforce staff authorization itself. Obtain institutional approval before production use involving patient information.
 
 To update, edit the frontend or configuration, rerun tests and rebuild, then replace the deployed `dist/` files. The build does not deploy or alter the original applications. Prefer approved internal hosting. No patient data or legacy source should be published on GitHub Pages.
 

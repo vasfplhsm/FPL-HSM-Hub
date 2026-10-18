@@ -1,6 +1,6 @@
 # Set up the announcement editor
 
-GitHub Pages serves the Hub. Firebase Authentication signs in the administrator, and Cloud Firestore stores announcements and enforces who may change them. Visitors need no account and can only read announcements. The editor is inside the Hub under **Pentadbir**.
+Firebase Hosting can serve the Hub after migration; the existing GitHub Pages version can remain as a backup. Firebase Authentication signs in the administrator, and Cloud Firestore stores announcements and enforces who may change them. Visitors need no account and can only read announcements. The editor is inside the Hub under **Pentadbir**. See [the Desktop and Firebase Hosting guide](firebase-hosting.md) for download and terminal deployment steps.
 
 Use a **new dedicated Firebase project** for this Hub. Do not replace the rules of an existing pharmacy application. A small announcement board can fit the free Spark quotas; no billing upgrade is required for this implementation. Firebase can limit service if free quotas are exhausted.
 
@@ -14,7 +14,7 @@ Use a **new dedicated Firebase project** for this Hub. Do not replace the rules 
 ## 2. Register the web app
 
 1. On Project overview, choose the web icon **</>**.
-2. Enter an app nickname such as “Pharmacy Hub”. You do not need Firebase Hosting because the site stays on GitHub Pages.
+2. Enter an app nickname such as “Pharmacy Hub”. Register the app; the repository already contains the Firebase Hosting configuration, so you do not need to generate a new starter website.
 3. Register the app. Firebase displays a `firebaseConfig` object.
 4. Keep its **projectId** and public web **apiKey**. The remaining SDK fields are not required by this implementation. These are public browser configuration values, not admin credentials.
 
@@ -24,7 +24,7 @@ You can find them again under **Project settings → General → Your apps → W
 
 1. Open **Build → Authentication → Get started**.
 2. Under **Sign-in method**, enable **Email/Password**. Email-link sign-in is not needed.
-3. Under **Settings → Authorized domains**, add `vasfplhsm.github.io` if it is not already listed. Enter the hostname only, without a scheme or project path.
+3. Under **Settings → Authorized domains**, confirm your project's `web.app` and `firebaseapp.com` hostnames are listed. If you also keep using GitHub Pages, add `vasfplhsm.github.io`. Enter hostnames only, without a scheme or project path.
 4. Under **Users**, choose **Add user**. Enter the administrator's email and a strong password directly in Firebase Console.
 5. Copy that user's **UID**. You need it in step 5.
 
@@ -60,7 +60,7 @@ Provide the public `firebaseConfig` from step 2 so it can be added to this machi
 }
 ```
 
-Keep the existing branding and module links in that file. Then run `npm run build:pages`, commit the updated site files, and push `main`. Pages continues using **main → /docs**. No Firebase hosting deployment or npm package installation is needed.
+Keep the existing branding and module links in that file. For Firebase Hosting, follow the [hosting guide](firebase-hosting.md): run `npm run build`, then deploy `hosting` to your actual project with the Firebase CLI. To update the optional GitHub Pages copy instead, run `npm run build:pages`, commit the generated files and push `main` (Pages uses **main → /docs**).
 
 The web API key identifies the project; it does not grant admin privileges. Firebase Authentication and the published Firestore rules protect writes. Never replace the rules with public-write access to fix a sign-in problem.
 

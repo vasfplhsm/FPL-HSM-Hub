@@ -14,6 +14,8 @@ Executed outcomes: **12 Node tests passed**, the Pages build passed, and both br
 
 ## Manual acceptance before production
 
+Firebase Hosting migration preparation: Firebase CLI **15.34.0** was installed in the tool cache and the Hosting emulator served the generated `dist/` using the new `firebase.json` with a demo project. The homepage, all configured HTTP security headers, private/source-file exclusion checks and both browser suites passed against the Hosting emulator. The browser admin suite still used intercepted Firebase responses. This is local Hosting validation, not a live Firebase deployment; a real project, account authorization and backend setup are still required.
+
 GitHub Pages preparation: `npm run build:pages` passed. The Chromium suite also passed against generated static files served under `/FPL-HSM-Hub/`, including desktop and mobile layouts. This verifies project-subdirectory asset loading; it does not establish that GitHub has published the site.
 
 The Hub is a launcher, so business functions must be checked inside each original application by an authorized staff member:
