@@ -1,12 +1,14 @@
 # FPL HSM Pharmacy Hub
 
-A lightweight, responsive entry point for Farmasi Pesakit Luar, Hospital Seri Manjung. The Hub brings Planner Cuti, MyUbat reference search and Katalog Ubat into one navigation system. It uses plain HTML, CSS and JavaScript, with a small Node server for local development. No runtime packages, paid services or database migrations are required.
+A lightweight, responsive entry point for Farmasi Pesakit Luar, Hospital Seri Manjung. The Hub brings Planner Cuti, MyUbat reference search, Katalog Ubat, Formulari HSM and Portal Farmasi HSM into one navigation system. It uses plain HTML, CSS and JavaScript, with a small Node server for local development. No runtime packages, paid services or database migrations are required.
 
 ## What works
 
-- Bahasa Melayu dashboard and navigation, three module cards and module pages.
+- Bahasa Melayu dashboard and navigation, five application/resource cards and module pages.
+- The supplied FPL HSM logo appears as the favicon, touch icon and main branding; teal, aqua and deep blue themes follow its colours.
+- Light/dark toggle in the header. The first visit follows the device theme; an explicit choice is remembered. Only the `fpl-hsm-theme` display preference is saved in browser storage.
 - Malaysia date and clock (`Asia/Kuala_Lumpur`), desktop sidebar and mobile bottom navigation.
-- Your three supplied application URLs are configured in this machine's ignored `config/local.json`.
+- Your five supplied URLs are configured in this machine's ignored `config/local.json` and in the published `docs/config.json`.
 - Each configured module opens its original application in a new tab; Hub remains open.
 - Missing-link, configuration loading, retry, error and unknown-page states.
 - Keyboard focus, skip navigation and reduced-motion support.
@@ -31,9 +33,9 @@ If `config/local.json` is missing, copy `config/example.json` to `config/local.j
 "planner": { "name": "Planner Cuti FPL HSM", "url": "https://example.org/planner" }
 ```
 
-Do the same for `myubat` and `katalog`. Use the complete Planner Apps Script `/exec` URL, the MyUbat application page and the catalogue application page. Do **not** use Sheet links or JSON backend endpoints. URLs with credentials, query parameters or fragments are rejected. You can change the title, department, hospital and module names in the same file. Restart the server after editing; rebuild before deploying static output.
+Do the same for `myubat`, `katalog`, `formulary` and `farmasi`. Use the complete Planner Apps Script `/exec` URL and the staff-facing application or portal pages. Do **not** use Sheet links or JSON backend endpoints. URLs with credentials, query parameters or fragments are rejected. You can change the title, department, hospital and module names in the same file. Restart the server after editing; rebuild before deploying static output.
 
-`local.json` is ignored by Git. The three links you provided are retained there in this cloud machine. A fresh Git clone starts with unconfigured links until you supply that file. No secret, patient identifier, passkey, API token or private spreadsheet ID belongs in this configuration. The title and module links are sent to browsers and appear in the build.
+`local.json` is ignored by Git. The links you provided are retained there in this cloud machine. A fresh Git clone uses blank local links until you supply that file; copy the published `docs/config.json` to `config/local.json` to preserve the current links before rebuilding. No secret, patient identifier, passkey, API token or private spreadsheet ID belongs in this configuration. The title and module links are sent to browsers and appear in the build.
 
 ## Files
 
@@ -41,6 +43,8 @@ Do the same for `myubat` and `katalog`. Use the complete Planner Apps Script `/e
 public/index.html          Page structure
 public/assets/app.js       Dashboard, module pages, navigation and states
 public/assets/icons.js     Local SVG icons (no icon CDN)
+public/assets/theme.js     Light/dark/system theme and display preference
+public/assets/fpl-hsm-logo.png  Supplied original FPL HSM logo
 public/assets/styles.css   Shared responsive design
 config/example.json       Safe blank configuration template
 config/local.json         Your machine's links; ignored by Git
@@ -54,7 +58,7 @@ docs/validation.md        Tested capabilities and limitations
 dist/                     Generated deployment files; ignored by Git
 ```
 
-The supplied legacy sources remain in the original uploaded attachments outside this repository. They were inspected but not modified, deployed, or copied into public assets. Existing Sheets, Apps Script deployments, passkeys and automation are unchanged.
+The supplied legacy sources remain in the original uploaded attachments outside this repository. They were inspected but not modified, deployed, or copied into public assets. Existing Sheets, Apps Script deployments, passkeys and automation are unchanged. The logo was copied unchanged from the [user-provided image](https://raw.githubusercontent.com/vasfplhsm/hsmformularyassets/refs/heads/main/ICON%20FPL%20HSM.png) into local assets; the Hub does not fetch it from GitHub at runtime.
 
 ## Google Apps Script integration
 
@@ -111,7 +115,8 @@ If Chromium is already installed, set `CHROMIUM_PATH` instead of downloading a b
 | Symptom | Action |
 | --- | --- |
 | Module is not connected | Add its approved application URL in `config/local.json`, restart, then rebuild if using static hosting. |
-| Hub cannot load | Check JSON syntax, keep all three module entries and use HTTPS URLs without query strings. Press “Cuba semula” after correcting the configuration. |
+| Hub cannot load | Check JSON syntax, keep all five module entries and use HTTPS URLs without query strings. Press “Cuba semula” after correcting the configuration. |
+| Change light/dark appearance | Use the moon/sun button in the header. Clear only the `fpl-hsm-theme` local storage key to follow device preference again. |
 | Opening `index.html` directly fails | Use `npm start`; the Hub loads configuration through HTTP. |
 | App asks for login/passkey | Sign in to that original application. Hub does not replace its access checks. |
 | App refuses access or fails | Ask that application's administrator to inspect its deployment. A Hub link cannot fix its backend. |

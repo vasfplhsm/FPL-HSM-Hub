@@ -10,6 +10,8 @@ const files = new Map([
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/assets/styles.css', ['assets/styles.css', 'text/css; charset=utf-8']],
   ['/assets/app.js', ['assets/app.js', 'text/javascript; charset=utf-8']],
+  ['/assets/theme.js', ['assets/theme.js', 'text/javascript; charset=utf-8']],
+  ['/assets/fpl-hsm-logo.png', ['assets/fpl-hsm-logo.png', 'image/png']],
   ['/assets/icons.js', ['assets/icons.js', 'text/javascript; charset=utf-8']]
 ]);
 export const securityHeaders = {

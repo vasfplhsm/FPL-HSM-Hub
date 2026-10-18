@@ -5,6 +5,8 @@
   "modules": {
     "planner": { "name": "Planner Cuti FPL HSM", "url": "" },
     "myubat": { "name": "Carian No Rujukan MyUbat", "url": "" },
-    "katalog": { "name": "Katalog Ubat FPL HSM", "url": "" }
+    "katalog": { "name": "Katalog Ubat FPL HSM", "url": "" },
+    "formulary": { "name": "Formulari HSM", "url": "" },
+    "farmasi": { "name": "Portal Farmasi HSM", "url": "" }
   }
 }

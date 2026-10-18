@@ -4,9 +4,9 @@
 
 - `npm test`: configuration allowlist, unsafe URL rejection, local/fallback/malformed configuration handling, actual HTTP assets, headers, private-file denial and method restrictions.
 - `npm run build`: generates static assets and validated public configuration in `dist/`.
-- `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`: real Chromium checks for dashboard, Malaysia clock, all routes, active navigation, desktop and 390px/320px mobile overflow, link attributes, missing module links, unknown pages, configuration failure/retry and malicious URL rejection. Does not visit external applications.
+- `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`: real Chromium checks for dashboard, Malaysia clock, all five routes, exact new resource URLs, logo/favicon, active navigation, desktop/tablet and 390px/320px mobile overflow, link attributes, missing module links, unknown pages, configuration failure/retry and malicious URL rejection. Theme checks cover light/dark switching, keyboard toggle, persistence across reload, display-only storage and following device preference for a new visitor. Does not visit external applications.
 
-Executed in the onboarding machine: all **4 Node tests passed**, the build passed, and the Chromium browser checks passed. Desktop and mobile screenshots were also visually inspected. Chromium was already installed at `/usr/bin/chromium`; a separate Playwright browser download was blocked by network policy and was not needed. None of these tests establishes live module availability or authorization.
+Executed in the cloud machine: all **4 Node tests passed**, the build passed, and the expanded Chromium browser checks passed against the Pages subdirectory. Desktop and mobile screenshots in both themes were also visually inspected. The logo is served locally as PNG and checked by the HTTP suite. Chromium was already installed at `/usr/bin/chromium`; a separate Playwright browser download was blocked by network policy and was not needed. None of these tests establishes live module availability or authorization.
 
 ## Manual acceptance before production
 

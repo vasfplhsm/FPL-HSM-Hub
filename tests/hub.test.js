@@ -10,7 +10,7 @@ const example = JSON.parse(await readFile(new URL('../config/example.json', impo
 
 test('configuration exposes only public metadata and known modules', () => {
   const config = validateConfig({ ...example, secret: 'DO_NOT_EXPOSE', modules: { ...example.modules, unknown: { url: 'https://example.com' } } });
-  assert.deepEqual(Object.keys(config.modules), ['planner', 'myubat', 'katalog']);
+  assert.deepEqual(Object.keys(config.modules), ['planner', 'myubat', 'katalog', 'formulary', 'farmasi']);
   assert.equal(config.secret, undefined);
   assert.equal(config.modules.myubat.url, '');
 });
@@ -42,7 +42,7 @@ test('HTTP serves the real Hub with security headers and denies source/private f
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   try {
-    for (const path of ['/', '/assets/app.js', '/assets/styles.css', '/assets/icons.js', '/config.json']) {
+    for (const path of ['/', '/assets/app.js', '/assets/styles.css', '/assets/icons.js', '/assets/theme.js', '/config.json']) {
       const response = await fetch(base + path);
       assert.equal(response.status, 200, path);
       assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
@@ -51,6 +51,9 @@ test('HTTP serves the real Hub with security headers and denies source/private f
     }
     const config = await (await fetch(base + '/config.json')).json();
     assert.deepEqual(config, validateConfig(example));
+    const logo = await fetch(base + '/assets/fpl-hsm-logo.png');
+    assert.equal(logo.headers.get('content-type'), 'image/png');
+    assert.deepEqual([...new Uint8Array(await logo.arrayBuffer()).slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
     for (const path of ['/config/local.json', '/src/server.js', '/.git/config', '/attachments/file', '/not-found', '/%2e%2e/config/local.json']) {
       assert.equal((await fetch(base + path)).status, 404, path);
     }

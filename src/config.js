@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-export const moduleIds = ['planner', 'myubat', 'katalog'];
+export const moduleIds = ['planner', 'myubat', 'katalog', 'formulary', 'farmasi'];
 
 // Configuration is public metadata. Never put API credentials or Sheet IDs here.
 export function safeAppUrl(value) {
@@ -13,7 +13,7 @@ export function safeAppUrl(value) {
 
 export function validateConfig(input) {
   const text = (value, fallback) => typeof value === 'string' && value.trim() ? value.trim().slice(0, 120) : fallback;
-  const defaults = { planner: 'Planner Cuti FPL HSM', myubat: 'Carian No Rujukan MyUbat', katalog: 'Katalog Ubat FPL HSM' };
+  const defaults = { planner: 'Planner Cuti FPL HSM', myubat: 'Carian No Rujukan MyUbat', katalog: 'Katalog Ubat FPL HSM', formulary: 'Formulari HSM', farmasi: 'Portal Farmasi HSM' };
   return {
     title: text(input.title, 'FPL HSM Pharmacy Hub'),
     department: text(input.department, 'Farmasi Pesakit Luar'),

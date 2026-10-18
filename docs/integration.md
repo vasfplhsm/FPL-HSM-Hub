@@ -1,5 +1,7 @@
 # Inspection and integration decision
 
+The Hub now also launches the user-supplied **Formulari HSM** (`https://hsm-formulary.web.app/`) and **Portal Farmasi HSM** (`https://farmasihsm.my.canva.site/ver2026/`). These are external resource links, not new backend integrations. Their content and authentication remain with the original sites; no live content or clinical data was imported or verified.
+
 The initial checkout had no commits or files. Six uploaded files supplied the brief, Planner backend/frontend, MyUbat frontend, catalogue JSON backend and catalogue frontend. Additional DT, PT and Postage backends were provided in chat. Uploads remain untouched outside the checkout; they are not served by the Hub.
 
 ## Interfaces inspected

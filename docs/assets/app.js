@@ -3,7 +3,9 @@ import { icon } from './icons.js';
 const modules = {
   planner: { short: 'Planner Cuti', category: 'PENGURUSAN STAF', description: 'Rancang cuti, urus permohonan dan semak jadual pasukan anda.', features: ['Hantar & batal cuti / off', 'Ringkasan bulanan & mingguan', 'Pengesahan passkey staf'], note: 'Permohonan, pembatalan, passkey dan peraturan tempahan kekal di aplikasi Planner asal.' },
   myubat: { short: 'Carian MyUbat', category: 'PERKHIDMATAN PESAKIT', description: 'Cari nombor rujukan untuk Drive Through, Park & Take dan Pos Ubat.', features: ['Carian nama atau MRN', 'Rujukan & status pengambilan', 'Catatan bekalan ubat'], note: 'Carian dan kemas kini rekod hanya boleh dilakukan dalam aplikasi asal yang dibenarkan. Hub tidak menerima atau menyimpan maklumat pesakit.' },
-  katalog: { short: 'Katalog Ubat', category: 'RUJUKAN FARMASI', description: 'Akses maklumat ubat, lokasi simpanan dan rujukan formulari setempat.', features: ['Carian ubat & penapis kategori', 'Lokasi, kuota & persediaan', 'Indikasi & dos daripada sumber asal'], note: 'Maklumat indikasi dan dos mesti dirujuk daripada katalog rasmi. Hub tidak menjana cadangan rawatan atau maklumat dos.' }
+  katalog: { short: 'Katalog Ubat', category: 'RUJUKAN FARMASI', description: 'Akses maklumat ubat, lokasi simpanan dan rujukan formulari setempat.', features: ['Carian ubat & penapis kategori', 'Lokasi, kuota & persediaan', 'Indikasi & dos daripada sumber asal'], note: 'Maklumat indikasi dan dos mesti dirujuk daripada katalog rasmi. Hub tidak menjana cadangan rawatan atau maklumat dos.' },
+  formulary: { short: 'Formulari HSM', category: 'RUJUKAN FORMULARI', description: 'Buka aplikasi Formulari HSM sebagai rujukan tambahan dalam urusan farmasi.', features: ['Pautan ke Formulari HSM', 'Rujukan melalui aplikasi asal', 'Dibuka dalam tab baharu'], note: 'Sila rujuk sumber dan tarikh kemas kini di aplikasi Formulari HSM. Hub tidak menyalin atau menjana maklumat ubat.' },
+  farmasi: { short: 'Portal Farmasi', category: 'PORTAL FARMASI', description: 'Akses laman Farmasi HSM versi 2026 melalui satu pusat pautan yang mudah.', features: ['Laman Farmasi HSM versi 2026', 'Sumber di portal asal', 'Dibuka dalam tab baharu'], note: 'Pautan ini membuka laman Farmasi HSM yang diberikan. Kandungan dan kemas kini dikendalikan di portal asal.' }
 };
 let config;
 const main = document.querySelector('main');
@@ -14,7 +16,7 @@ const ids = Object.keys(modules);
 function navigation() {
   document.querySelector('#navigation').innerHTML = [
     ['dashboard', 'Laman Utama'], ...ids.map(id => [id, modules[id].short])
-  ].map(([id, title]) => `<a href="#${id}" data-route="${id}">${icon(id)}<span>${escape(title)}</span><span class="nav-arrow">›</span></a>`).join('');
+  ].map(([id, title]) => `<a href="#${id}" data-route="${id}" aria-label="${escape(title)}" title="${escape(title)}">${icon(id)}<span>${escape(title)}</span><span class="nav-arrow">›</span></a>`).join('');
 }
 
 function card(id, index) {
@@ -25,10 +27,10 @@ function card(id, index) {
 function dashboard() {
   const count = ids.filter(id => config.modules[id].url).length;
   return `<div class="breadcrumb">Ruang kerja <span>/</span> Laman Utama</div>
-    <section class="welcome"><div><div class="welcome-kicker"><span></span> SATU HUB, SEMUA KEPERLUAN</div><h1>Selamat datang ke<br><span>${escape(config.title)}</span></h1><p>Pusat akses aplikasi ${escape(config.department)}.<br>Lebih tersusun. Lebih mudah. Bersama untuk perkhidmatan yang lebih baik.</p></div><div class="date-panel">${icon('clock')}<span id="date"></span><strong id="time"></strong><small>Waktu Malaysia · GMT+8</small></div><div class="welcome-decoration" aria-hidden="true">✚</div></section>
-    <div class="section-heading"><div><h2>Aplikasi farmasi</h2><p>Pilih aplikasi untuk memulakan urusan anda.</p></div><span class="count-label">3 aplikasi utama</span></div>
+    <section class="welcome"><div><div class="welcome-kicker"><span></span> SATU HUB, SEMUA KEPERLUAN</div><h1>Selamat datang ke<br><span>${escape(config.title)}</span></h1><p>Pusat akses aplikasi ${escape(config.department)}.<br>Lebih tersusun. Lebih mudah. Bersama untuk perkhidmatan yang lebih baik.</p></div><div class="welcome-side"><img class="welcome-logo" src="assets/fpl-hsm-logo.png" alt="Farmasi Pesakit Luar, Hospital Seri Manjung" width="124" height="124"><div class="date-panel">${icon('clock')}<span id="date"></span><strong id="time"></strong><small>Waktu Malaysia · GMT+8</small></div></div></section>
+    <div class="section-heading"><div><h2>Aplikasi &amp; sumber farmasi</h2><p>Pilih aplikasi untuk memulakan urusan anda.</p></div><span class="count-label">${ids.length} pautan utama</span></div>
     <section class="module-grid" aria-label="Aplikasi farmasi">${ids.map(card).join('')}</section>
-    <section class="lower-grid"><div class="guide-panel"><span class="small-icon">${icon('book')}</span><div><h2>Aliran kerja yang lebih mudah</h2><p>Pilih aplikasi, buka pautan asal dan teruskan urusan dengan akaun atau passkey sedia ada.</p><div class="steps"><span><b>1</b> Pilih aplikasi</span><span><b>2</b> Sahkan akses</span><span><b>3</b> Teruskan urusan</span></div></div></div><div class="connection-panel"><div class="section-heading"><h2>Status pautan</h2><span>${count} / 3</span></div>${ids.map(id => `<div class="connection-row"><span>${icon(id)}${modules[id].short}</span><span class="connection-dot ${config.modules[id].url ? 'configured' : ''}"></span></div>`).join('')}<small>Status ini menunjukkan konfigurasi pautan, bukan ketersediaan pelayan.</small></div></section>
+    <section class="lower-grid"><div class="guide-panel"><span class="small-icon">${icon('book')}</span><div><h2>Aliran kerja yang lebih mudah</h2><p>Pilih aplikasi, buka pautan asal dan teruskan urusan dengan akaun atau passkey sedia ada.</p><div class="steps"><span><b>1</b> Pilih aplikasi</span><span><b>2</b> Sahkan akses</span><span><b>3</b> Teruskan urusan</span></div></div></div><div class="connection-panel"><div class="section-heading"><h2>Status pautan</h2><span>${count} / ${ids.length}</span></div>${ids.map(id => `<div class="connection-row"><span>${icon(id)}${modules[id].short}</span><span class="connection-dot ${config.modules[id].url ? 'configured' : ''}"></span></div>`).join('')}<small>Status ini menunjukkan konfigurasi pautan, bukan ketersediaan pelayan.</small></div></section>
     <div class="privacy-note">${icon('shield')}<p><strong>Privasi dalam setiap urusan.</strong> Hub ini tidak menyimpan rekod pesakit. Pengesahan dan kebenaran akses dikendalikan oleh setiap aplikasi asal.</p></div>`;
 }
 
