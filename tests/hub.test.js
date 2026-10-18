@@ -23,6 +23,14 @@ test('unsafe or identifier-bearing module URLs fail closed', () => {
   assert.equal(safeAppUrl(''), '');
 });
 
+test('Firebase configuration accepts only public identifiers and rejects malformed setup', () => {
+  const firebase = {projectId:'test-project',apiKey:'test-public-key',privateKey:'DO_NOT_EXPOSE'};
+  assert.deepEqual(validateConfig({...example,firebase}).firebase,{projectId:'test-project',apiKey:'test-public-key'});
+  for (const firebase of [{apiKey:'test-public-key'},{projectId:'bad/path',apiKey:'test-public-key'},{projectId:'test-project',apiKey:''}]) {
+    assert.throws(()=>validateConfig({...example,firebase}));
+  }
+});
+
 test('local configuration wins; missing local config uses example; malformed local fails', async () => {
   const root = await mkdtemp(join(tmpdir(), 'hub-config-'));
   try {

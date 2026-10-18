@@ -6,14 +6,14 @@
   <meta name="theme-color" content="#076d8c">
   <meta name="color-scheme" content="light dark">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="description" content="Pusat akses aplikasi Farmasi Pesakit Luar, Hospital Seri Manjung.">
   <title>Farmasi Pesakit Luar HSM Pharmacy Hub</title>
   <link rel="icon" type="image/png" href="assets/fpl-hsm-logo.png">
   <link rel="apple-touch-icon" href="assets/fpl-hsm-logo.png">
   <script src="assets/theme.js"></script>
-  <link rel="stylesheet" href="assets/styles.css?v=full-name-footer">
-  <script type="module" src="assets/app.js?v=full-name-footer"></script>
+  <link rel="stylesheet" href="assets/styles.css?v=announcements">
+  <script type="module" src="assets/app.js?v=announcements"></script>
 </head>
 <body>
   <a class="skip" href="#main">Langkau ke kandungan</a>
@@ -24,7 +24,7 @@
     <div class="sidebar-bottom"><strong>Hospital Seri Manjung</strong><span>Farmasi Pesakit Luar<br>Perak, Malaysia</span><div class="internal-label">Untuk kegunaan staf</div></div>
   </aside>
   <div class="page">
-    <header class="topbar"><div class="header-brand"><img class="header-logo" src="assets/fpl-hsm-logo.png" alt="Logo FPL HSM" width="44" height="44"><div><span class="eyebrow">FARMASI PESAKIT LUAR</span><span class="topbar-name">Hospital Seri Manjung</span></div></div><div class="header-controls"><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Aktifkan mod gelap" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.8 13A9 9 0 0 1 11 3.2 9 9 0 1 0 20.8 13Z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg><span id="theme-label">Mod gelap</span></button><div class="staff-badge"><span>Ruang kerja staf<small>Akses melalui aplikasi asal</small></span></div></div></header>
+    <header class="topbar"><div class="header-brand"><img class="header-logo" src="assets/fpl-hsm-logo.png" alt="Logo FPL HSM" width="44" height="44"><div><span class="eyebrow">FARMASI PESAKIT LUAR</span><span class="topbar-name">Hospital Seri Manjung</span></div></div><div class="header-controls"><a class="admin-shortcut" href="#admin" aria-label="Pentadbir" title="Pentadbir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg><span>Pentadbir</span></a><button class="theme-toggle" id="theme-toggle" type="button" aria-label="Aktifkan mod gelap" aria-pressed="false"><svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M20.8 13A9 9 0 0 1 11 3.2 9 9 0 1 0 20.8 13Z"/></svg><svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg><span id="theme-label">Mod gelap</span></button><div class="staff-badge"><span>Ruang kerja staf<small>Akses melalui aplikasi asal</small></span></div></div></header>
     <main id="main" tabindex="-1"><div class="initial-state" role="status">Memuatkan Hub…</div></main>
     <footer><span class="footer-name">Farmasi Pesakit Luar HSM Pharmacy Hub</span><span>Direka untuk memudahkan urusan farmasi.</span><span>Hospital Seri Manjung</span></footer>
   </div>

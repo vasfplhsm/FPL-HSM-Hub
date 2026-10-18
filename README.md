@@ -4,12 +4,13 @@ A lightweight, responsive entry point for Farmasi Pesakit Luar, Hospital Seri Ma
 
 ## What works
 
-- Bahasa Melayu dashboard and navigation, five application/resource cards and module pages.
+- Bahasa Melayu homepage with an announcement board; application shortcuts appear only in the sidebar and mobile navigation.
+- In-Hub admin announcement editor: email/password sign-in, publishing, editing, deletion confirmation and sign-out. Firebase setup is required before live publishing works; see the [step-by-step guide](docs/firebase-setup.md).
 - The supplied FPL HSM logo appears as the favicon, touch icon and main branding; teal, aqua and deep blue themes follow its colours.
 - Light/dark toggle in the header. The first visit follows the device theme; an explicit choice is remembered. Only the `fpl-hsm-theme` display preference is saved in browser storage.
 - Malaysia date and clock (`Asia/Kuala_Lumpur`), desktop sidebar and mobile bottom navigation.
 - Your five supplied URLs are configured in this machine's ignored `config/local.json` and in the published `docs/config.json`.
-- Each configured card, sidebar link and mobile shortcut opens its original application directly in one click in a new tab; Hub remains open. No intermediate confirmation page is required. Unconfigured links still show setup guidance.
+- Each configured sidebar link and mobile shortcut opens its original application directly in one click in a new tab; Hub remains open. No intermediate confirmation page is required. Unconfigured links still show setup guidance.
 - Missing-link, configuration loading, retry, error and unknown-page states.
 - Keyboard focus, skip navigation and reduced-motion support.
 - No patient search forms, patient storage, analytics, backend proxy or data downloads in the Hub.
@@ -24,6 +25,16 @@ This release uses the **central launcher architecture** allowed by the project b
 4. On your own computer, open the local address and port printed by the server (default port 4173). In cloud onboarding, validation is performed internally; the interface does not provide a web preview.
 
 Stop the server with Ctrl+C. Change the port with `PORT=4174 npm start`. It binds to your local machine by default. Use `HOST=0.0.0.0` only behind your chosen access-controlled hosting boundary.
+
+## Announcements and administrator access
+
+Choose **Pentadbir** in the header to access the editor. Visitors see only published notices on Laman Utama. There are no duplicate application cards or app URLs on the homepage.
+
+The editor uses Firebase Authentication and Cloud Firestore through their official REST APIs. No SDK package, paid backend server or client-side admin password is added. Firestore rules enforce write authorization using an `admins/<Auth UID>` document with `enabled: true`; ordinary authenticated accounts still cannot publish. Admin role documents cannot be changed by the website.
+
+**Current setup:** no Firebase project configuration has been supplied yet. The public board has an empty local fallback, and the admin page clearly shows that the editor is not connected. Follow [the Firebase setup guide](docs/firebase-setup.md), then provide the public web-app configuration to connect it. Never send an admin password or service-account key.
+
+Once configured, announcements are read from Firestore and published directly from the admin editor without rebuilding GitHub Pages. If Firestore fails, an error/retry state appears; the Hub does not silently substitute old local notices. Tokens stay in memory and are cleared on sign-out or reload. The only persisted browser setting remains the colour theme.
 
 ## Configure application links
 
@@ -44,6 +55,9 @@ public/index.html          Page structure
 public/assets/app.js       Dashboard, module pages, navigation and states
 public/assets/icons.js     Local SVG icons (no icon CDN)
 public/assets/theme.js     Light/dark/system theme and display preference
+public/assets/announcements.js  Notice validation shared by browser and build
+public/assets/announcement-backend.js  Firebase Auth and Firestore REST adapter
+public/assets/admin.js     Signed-in announcement editing interface
 public/assets/fpl-hsm-logo.png  Supplied original FPL HSM logo
 public/assets/styles.css   Shared responsive design
 config/example.json       Safe blank configuration template
@@ -52,7 +66,13 @@ src/config.js             Public configuration validation
 src/server.js             Local server and security headers
 scripts/build.js          Static build; no bundler required
 tests/hub.test.js          Node configuration and HTTP tests
+tests/announcements.test.js  Notice validation and read-only local endpoint
+tests/announcement-backend.test.js  Auth/mutation protocol tests with simulated responses
 tests/browser.cjs          Optional browser regression checks
+tests/admin-browser.cjs    Admin UI tests with intercepted Firebase services
+firebase/firestore.rules   Server-enforced announcement and admin permissions
+docs/firebase-setup.md    Step-by-step Firebase setup
+docs/announcements.json   Empty local fallback until Firebase is configured
 docs/integration.md       Inspection findings and integration boundaries
 docs/validation.md        Tested capabilities and limitations
 dist/                     Generated deployment files; ignored by Git
@@ -72,7 +92,7 @@ Read [integration notes](docs/integration.md) before attempting deeper integrati
 
 GitHub Pages serves this Hub publicly. It does not provide staff sign-in; the original applications must enforce their own authorization. Only branding and approved application links are included, with no patient records or legacy backend source.
 
-1. Run `npm run build:pages`. This writes the Hub to `docs/index.html`, `docs/assets/`, `docs/config.json` and `docs/.nojekyll`. The generated configuration intentionally contains the application links and is public.
+1. Run `npm run build:pages`. This writes the Hub to `docs/index.html`, `docs/assets/`, `docs/config.json`, `docs/announcements.json` and `docs/.nojekyll`. The generated configuration intentionally contains the application links and, when configured, Firebase's public project ID/web API key.
 2. Commit and push the project to `main` on GitHub.
 3. Open your repository's **Settings → Pages**.
 4. Choose **Deploy from a branch**, then **main** and **/docs**, and click **Save**.
@@ -99,16 +119,19 @@ Cloud environment settings store reusable build/start instructions. Saving that 
 
 ## Tests
 
-`npm test` runs four built-in Node tests with no additional packages. `npm run build` checks and exports the configured Hub. For optional browser tests, install Playwright locally without changing the package declarations:
+`npm test` runs the built-in Node tests with no additional packages. `npm run build` checks and exports the configured Hub. For optional browser tests, install Playwright locally without changing the package declarations:
 
 ```sh
 npm install --no-save --package-lock=false playwright
 npx playwright install chromium
 # Leave npm start running in another terminal:
 node tests/browser.cjs
+node tests/admin-browser.cjs
 ```
 
 If Chromium is already installed, set `CHROMIUM_PATH` instead of downloading a browser. In this cloud machine: `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`. Browser tests exercise Hub pages only; they never open live modules or submit patient/staff data.
+
+Admin tests use simulated Firebase responses and do not verify a deployed project's security rules. Complete the live admin/non-admin access checks in the setup guide before relying on publishing.
 
 ## Troubleshooting
 

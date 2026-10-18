@@ -2,6 +2,7 @@
   "title": "Farmasi Pesakit Luar HSM Pharmacy Hub",
   "department": "Farmasi Pesakit Luar",
   "hospital": "Hospital Seri Manjung",
+  "firebase": null,
   "modules": {
     "planner": {
       "name": "Planner Cuti FPL HSM",

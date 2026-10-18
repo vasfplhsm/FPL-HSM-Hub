@@ -1,10 +1,14 @@
-import { mkdir, cp, writeFile } from 'node:fs/promises';
+import { mkdir, cp, writeFile, readFile } from 'node:fs/promises';
 import { loadConfig } from '../src/config.js';
 import { securityHeaders } from '../src/server.js';
+import { validateAnnouncements } from '../public/assets/announcements.js';
 const destination = new URL('../dist/', import.meta.url);
 const config = await loadConfig(new URL('../src/config.js', import.meta.url));
+const announcements = JSON.parse(await readFile(new URL('../docs/announcements.json', import.meta.url), 'utf8'));
+validateAnnouncements(announcements);
 await mkdir(destination, { recursive: true });
 await cp(new URL('../public/', import.meta.url), destination, { recursive: true });
 await writeFile(new URL('config.json', destination), JSON.stringify(config, null, 2));
+await writeFile(new URL('announcements.json', destination), JSON.stringify(announcements, null, 2) + '\n');
 await writeFile(new URL('_headers', destination), '/*\n' + Object.entries(securityHeaders).map(([key, value]) => `  ${key}: ${value}`).join('\n') + '\n');
 console.log('Built dist/: Hub assets and validated public application links only.');

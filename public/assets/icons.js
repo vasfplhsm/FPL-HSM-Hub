@@ -1,4 +1,5 @@
 const paths = {
+  announcement: '<path d="m3 10 17-6v16L3 14v-4Zm4 6 2 5h3l-2-6M20 9h2m-2 6h2"/>',
   dashboard: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   planner: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M16 3v4M8 3v4M3 11h18m-14 5 3 3 6-6"/>',
   myubat: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10.5h5m-2.5-2.5v5"/>',

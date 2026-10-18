@@ -1,6 +1,15 @@
 import { readFile } from 'node:fs/promises';
 export const moduleIds = ['planner', 'myubat', 'katalog', 'formulary', 'farmasi'];
 
+export function validateFirebase(input) {
+  if (input == null) return null;
+  if (typeof input !== 'object' || typeof input.projectId !== 'string' || !/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(input.projectId) ||
+      typeof input.apiKey !== 'string' || !/^[A-Za-z0-9_-]{10,200}$/.test(input.apiKey)) {
+    throw new Error('Firebase needs a valid public projectId and web apiKey.');
+  }
+  return {projectId:input.projectId,apiKey:input.apiKey};
+}
+
 // Configuration is public metadata. Never put API credentials or Sheet IDs here.
 export function safeAppUrl(value) {
   if (!value) return '';
@@ -18,6 +27,7 @@ export function validateConfig(input) {
     title: text(input.title, 'Farmasi Pesakit Luar HSM Pharmacy Hub'),
     department: text(input.department, 'Farmasi Pesakit Luar'),
     hospital: text(input.hospital, 'Hospital Seri Manjung'),
+    firebase: validateFirebase(input.firebase),
     modules: Object.fromEntries(moduleIds.map(id => [id, {
       name: text(input.modules?.[id]?.name, defaults[id]),
       url: safeAppUrl(input.modules?.[id]?.url)

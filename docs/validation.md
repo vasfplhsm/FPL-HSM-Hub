@@ -2,13 +2,15 @@
 
 ## Automated checks
 
-One-click launch update: the browser suite clicks each configured dashboard card and each mobile shortcut once, verifies the exact destination opens in an isolated new tab and checks that the Hub stays on its dashboard. It also checks Enter-key launching and the safe missing-link fallback. All external popup requests are intercepted by the test before they reach the original applications.
+The browser suite checks that the homepage contains the announcement board and no duplicate app cards/URLs. It clicks each sidebar/mobile shortcut, verifies the exact destination opens in an isolated new tab and checks that the Hub stays on its dashboard. It also checks Enter-key launching and the safe missing-link fallback. External popup requests are intercepted before they reach the original applications.
 
-- `npm test`: configuration allowlist, unsafe URL rejection, local/fallback/malformed configuration handling, actual HTTP assets, headers, private-file denial and method restrictions.
+- `npm test`: configuration allowlist, unsafe URL rejection, local/fallback/malformed configuration handling, actual HTTP assets, headers, private-file denial, method restrictions, notice validation, and Firebase REST auth/write protocol using simulated responses.
 - `npm run build`: generates static assets and validated public configuration in `dist/`.
 - `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`: real Chromium checks for dashboard, Malaysia clock, all five routes, exact new resource URLs, logo/favicon, active navigation, desktop/tablet and 390px/320px mobile overflow, link attributes, missing module links, unknown pages, configuration failure/retry and malicious URL rejection. Theme checks cover light/dark switching, keyboard toggle, persistence across reload, display-only storage and following device preference for a new visitor. Does not visit external applications.
 
-Executed in the cloud machine: all **4 Node tests passed**, the build passed, and the expanded Chromium browser checks passed against the Pages subdirectory. Desktop and mobile screenshots in both themes were also visually inspected. The logo is served locally as PNG and checked by the HTTP suite. Chromium was already installed at `/usr/bin/chromium`; a separate Playwright browser download was blocked by network policy and was not needed. None of these tests establishes live module availability or authorization.
+- `tests/admin-browser.cjs`: intercepted Firebase responses verify non-admin denial, admin sign-in, failed-save draft recovery, publishing, editing, confirmed deletion, read-only homepage, mobile editor layout, sign-out and memory-only session behavior.
+
+Executed outcomes: **12 Node tests passed**, the Pages build passed, and both browser suites passed with intercepted external services. The unconfigured admin page was also checked to show setup guidance with no login or publishing form, and desktop/mobile screenshots were inspected. No Firebase config has been supplied yet, so the deployed editor must remain disconnected. Production Firebase sign-in, persistence and rule enforcement are **unverified**. The official Firestore emulator download was blocked by the environment's network policy, so emulator rule execution was not completed either. Follow the setup guide's live admin/non-admin tests after connecting a project. Tests using simulated responses do not replace these checks.
 
 ## Manual acceptance before production
 

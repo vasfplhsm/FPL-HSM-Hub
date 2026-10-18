@@ -1,4 +1,7 @@
 import { icon } from './icons.js';
+import { validateAnnouncements } from './announcements.js';
+import { createAnnouncementBackend } from './announcement-backend.js';
+import { createAdminEditor } from './admin.js';
 
 const modules = {
   planner: { short: 'Planner Cuti', category: 'PENGURUSAN STAF', description: 'Rancang cuti, urus permohonan dan semak jadual pasukan anda.', features: ['Hantar & batal cuti / off', 'Ringkasan bulanan & mingguan', 'Pengesahan passkey staf'], note: 'Permohonan, pembatalan, passkey dan peraturan tempahan kekal di aplikasi Planner asal.' },
@@ -8,6 +11,8 @@ const modules = {
   farmasi: { short: 'Portal Farmasi', category: 'PORTAL FARMASI', description: 'Akses laman Farmasi HSM versi 2026 melalui satu pusat pautan yang mudah.', features: ['Laman Farmasi HSM versi 2026', 'Sumber di portal asal', 'Dibuka dalam tab baharu'], note: 'Pautan ini membuka laman Farmasi HSM yang diberikan. Kandungan dan kemas kini dikendalikan di portal asal.' }
 };
 let config;
+let backend, admin;
+let announcements = { status: 'loading', items: [] };
 const main = document.querySelector('main');
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const badge = module => `<span class="status ${module.url ? 'configured' : ''}"><span></span>${module.url ? 'Pautan tersedia' : 'Belum disambungkan'}</span>`;
@@ -28,20 +33,46 @@ function navigation() {
   }).join('');
 }
 
-function card(id, index) {
-  const module = config.modules[id], detail = modules[id];
-  const label = `${module.name}${module.url ? ' (tab baharu)' : ''}`;
-  return `<a class="module-card ${id}" ${moduleLink(id)} aria-label="${escape(label)}"><div class="card-top"><span class="module-icon">${icon(id)}</span><span class="card-number">0${index + 1}</span></div><span class="eyebrow">${detail.category}</span><h3>${escape(module.name)}</h3><p>${detail.description}</p><ul>${detail.features.map(f => `<li>${icon('check')}${f}</li>`).join('')}</ul><div class="card-bottom">${module.url ? '<span class="launch-label">Buka aplikasi</span>' : badge(module)}<span class="round-arrow">${icon(module.url ? 'external' : 'arrow')}</span></div></a>`;
-}
-
 function dashboard() {
-  const count = ids.filter(id => config.modules[id].url).length;
   return `<div class="breadcrumb">Ruang kerja <span>/</span> Laman Utama</div>
     <section class="welcome"><div><div class="welcome-kicker"><span></span> SATU HUB, SEMUA KEPERLUAN</div><h1>Selamat datang ke<br><span>${escape(config.title)}</span></h1><p>Pusat akses aplikasi ${escape(config.department)}.<br>Lebih tersusun. Lebih mudah. Bersama untuk perkhidmatan yang lebih baik.</p></div><div class="welcome-side"><img class="welcome-logo" src="assets/fpl-hsm-logo.png" alt="Farmasi Pesakit Luar, Hospital Seri Manjung" width="124" height="124"><div class="date-panel">${icon('clock')}<span id="date"></span><strong id="time"></strong><small>Waktu Malaysia · GMT+8</small></div></div></section>
-    <div class="section-heading"><div><h2>Aplikasi &amp; sumber farmasi</h2><p>Satu klik untuk membuka aplikasi dalam tab baharu.</p></div><span class="count-label">${ids.length} pautan utama</span></div>
-    <section class="module-grid" aria-label="Aplikasi farmasi">${ids.map(card).join('')}</section>
-    <section class="lower-grid"><div class="guide-panel"><span class="small-icon">${icon('book')}</span><div><h2>Aliran kerja yang lebih mudah</h2><p>Klik kad atau pintasan untuk terus membuka aplikasi asal dalam tab baharu. Gunakan akaun atau passkey sedia ada seperti biasa.</p><div class="steps"><span><b>1</b> Buka aplikasi</span><span><b>2</b> Sahkan akses</span><span><b>3</b> Teruskan urusan</span></div></div></div><div class="connection-panel"><div class="section-heading"><h2>Status pautan</h2><span>${count} / ${ids.length}</span></div>${ids.map(id => `<div class="connection-row"><span>${icon(id)}${modules[id].short}</span><span class="connection-dot ${config.modules[id].url ? 'configured' : ''}"></span></div>`).join('')}<small>Status ini menunjukkan konfigurasi pautan, bukan ketersediaan pelayan.</small></div></section>
+    <section class="announcement-board" aria-labelledby="announcements-title"><div class="announcement-heading"><span class="module-icon">${icon('announcement')}</span><div><span class="eyebrow">MAKLUMAN FARMASI</span><h2 id="announcements-title">Papan pengumuman</h2><p>Makluman terkini untuk warga Farmasi Pesakit Luar.</p></div></div><div id="announcements-content" aria-live="polite" aria-busy="true"></div></section>
     <div class="privacy-note">${icon('shield')}<p><strong>Privasi dalam setiap urusan.</strong> Hub ini tidak menyimpan rekod pesakit. Pengesahan dan kebenaran akses dikendalikan oleh setiap aplikasi asal.</p></div>`;
+}
+
+function paintAnnouncements() {
+  const content = document.querySelector('#announcements-content');
+  if (!content) return;
+  content.setAttribute('aria-busy', String(announcements.status === 'loading'));
+  if (announcements.status === 'loading') {
+    content.innerHTML = '<div class="announcement-state" role="status">Memuatkan pengumuman…</div>';
+  } else if (announcements.status === 'error') {
+    content.innerHTML = '<div class="announcement-state" role="alert"><h3>Pengumuman tidak dapat dimuatkan</h3><p>Sila cuba semula sebentar lagi.</p><button class="primary-button" id="announcements-retry" type="button">Cuba semula</button></div>';
+    content.querySelector('button').addEventListener('click', loadAnnouncements);
+  } else if (!announcements.items.length) {
+    content.innerHTML = `<div class="announcement-state">${icon('announcement')}<h3>Belum ada pengumuman</h3><p>Makluman baharu akan dipaparkan di sini.</p></div>`;
+  } else {
+    content.innerHTML = announcements.items.map(item => {
+      const date = item.date ? new Intl.DateTimeFormat('ms-MY', {timeZone:'Asia/Kuala_Lumpur', day:'numeric', month:'long', year:'numeric'}).format(new Date(item.date + 'T00:00:00+08:00')) : '';
+      return `<article class="announcement"><div class="announcement-meta"><span class="announcement-label">Pengumuman</span>${date ? `<time datetime="${escape(item.date)}">${escape(date)}</time>` : ''}</div><h3>${escape(item.title)}</h3><p class="announcement-body">${escape(item.body)}</p></article>`;
+    }).join('');
+  }
+}
+
+async function loadAnnouncements() {
+  announcements = { status: 'loading', items: [] };
+  paintAnnouncements();
+  try {
+    let feed;
+    if (backend) feed = {announcements:await backend.listAnnouncements()};
+    else {
+      const response = await fetch('announcements.json', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error('Announcements unavailable');
+      feed = await response.json();
+    }
+    announcements = { status: 'ready', items: validateAnnouncements(feed) };
+  } catch { announcements = { status: 'error', items: [] }; }
+  paintAnnouncements();
 }
 
 function modulePage(id) {
@@ -64,15 +95,17 @@ function updateClock() {
 
 function render(focus = false) {
   const route = location.hash.slice(1) || 'dashboard';
-  const valid = route === 'dashboard' || ids.includes(route);
+  const valid = route === 'dashboard' || route === 'admin' || ids.includes(route);
   // Unknown hashes are never interpolated or sent to a backend.
-  main.innerHTML = route === 'dashboard' ? dashboard() : ids.includes(route) ? modulePage(route) : '<section class="integration-panel"><h1>Halaman tidak dijumpai</h1><p>Sila pilih aplikasi melalui navigasi.</p><a class="primary-button" href="#dashboard">Kembali ke Laman Utama</a></section>';
+  main.innerHTML = route === 'dashboard' ? dashboard() : route === 'admin' ? '<div class="breadcrumb"><a href="#dashboard">Laman Utama</a><span>/</span>Pentadbir</div><h1>Pengurusan pengumuman</h1><section id="admin-panel" class="admin-panel"></section>' : ids.includes(route) ? modulePage(route) : '<section class="integration-panel"><h1>Halaman tidak dijumpai</h1><p>Sila pilih aplikasi melalui navigasi.</p><a class="primary-button" href="#dashboard">Kembali ke Laman Utama</a></section>';
   document.querySelectorAll('[data-route]').forEach(link => {
     if (link.dataset.route === route && link.target !== '_blank') link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
-  document.title = `${valid && route !== 'dashboard' ? modules[route].short : 'Laman Utama'} | ${config.title}`;
+  document.title = `${route === 'admin' ? 'Pentadbir' : valid && route !== 'dashboard' ? modules[route].short : 'Laman Utama'} | ${config.title}`;
   updateClock();
+  paintAnnouncements();
+  if (route === 'admin') admin.render();
   if (focus) { main.focus(); window.scrollTo(0, 0); }
 }
 
@@ -92,11 +125,14 @@ async function initialize() {
         if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) throw new Error('Invalid URL');
       }
     }
+    if (data.firebase != null && (typeof data.firebase.projectId !== 'string' || typeof data.firebase.apiKey !== 'string' || !/^[A-Za-z0-9_-]{10,200}$/.test(data.firebase.apiKey) || !/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(data.firebase.projectId))) throw new Error('Invalid Firebase configuration');
     config = data;
+    backend = config.firebase ? createAnnouncementBackend(config.firebase) : null;
+    admin = createAdminEditor(backend, loadAnnouncements);
     // Keep the footer consistent with current branding, including older cached HTML.
     const footerName = document.querySelector('footer > span');
     if (footerName) footerName.textContent = config.title;
-    navigation(); render();
+    navigation(); render(); loadAnnouncements();
   } catch {
     main.innerHTML = `<section class="integration-panel" role="alert"><span class="module-icon">${icon('info')}</span><h1>Hub tidak dapat dimuatkan</h1><p>Konfigurasi tidak tersedia atau tidak sah. Cuba semula atau hubungi pentadbir.</p><button class="primary-button" id="retry">Cuba semula</button></section>`;
     document.querySelector('#retry').addEventListener('click', initialize);

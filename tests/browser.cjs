@@ -19,7 +19,7 @@ const assert = require('node:assert/strict');
       return route.continue();
     });
     await page.goto(base);
-    await page.locator('.module-card').first().waitFor();
+    await page.locator('.welcome h1').waitFor();
     const config = await page.evaluate(async () => (await fetch('config.json')).json());
     async function verifyLaunch(link, expectedUrl, keyboard = false) {
       const hubUrl = page.url();
@@ -33,7 +33,10 @@ const assert = require('node:assert/strict');
       assert.equal(await popup.evaluate(() => window.opener === null), true);
       await popup.close();
     }
-    assert.equal(await page.locator('.module-card').count(), 5);
+    assert.equal(await page.locator('.module-card').count(), 0);
+    assert.equal(await page.locator('main a[target="_blank"]').count(), 0, 'Home does not duplicate application links');
+    await page.getByRole('heading', {name:'Belum ada pengumuman'}).waitFor();
+    assert.equal(await page.locator('main input, main textarea, main [contenteditable="true"]').count(), 0, 'Visitors have no editor');
     assert.equal(await page.locator('[data-route]').count(), 6);
     assert.equal(await page.locator('.header-logo').evaluate(img => img.complete && img.naturalWidth > 0), true);
     assert.equal(await page.locator('link[rel="icon"]').getAttribute('href'), 'assets/fpl-hsm-logo.png');
@@ -42,30 +45,29 @@ const assert = require('node:assert/strict');
       await page.setViewportSize(size);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No horizontal overflow');
       for (const id of moduleIds) {
-        const card = page.locator(`.module-card.${id}`);
         const shortcut = page.locator(`[data-route="${id}"]`);
-        for (const link of [card, shortcut]) {
+        for (const link of [shortcut]) {
           assert.equal(await link.getAttribute('href'), config.modules[id].url || `#${id}`);
           assert.equal(await link.getAttribute('target'), config.modules[id].url ? '_blank' : null);
           if (config.modules[id].url) assert.equal(await link.getAttribute('rel'), 'noopener noreferrer');
         }
-        if (config.modules[id].url && size.width === 1440) await verifyLaunch(card, config.modules[id].url);
+        if (config.modules[id].url && size.width === 1440) await verifyLaunch(shortcut, config.modules[id].url);
         if (config.modules[id].url && size.width === 390) await verifyLaunch(shortcut, config.modules[id].url);
       }
       assert.equal(await page.locator('[data-route="dashboard"]').getAttribute('aria-current'), 'page');
       await page.locator('[data-route="dashboard"]').click();
-      await page.locator('.module-card').first().waitFor();
+      await page.locator('.welcome h1').waitFor();
     }
-    if (config.modules.formulary.url) await verifyLaunch(page.locator('.module-card.formulary'), config.modules.formulary.url, true);
+    if (config.modules.formulary.url) await verifyLaunch(page.locator('[data-route="formulary"]'), config.modules.formulary.url, true);
     await page.emulateMedia({colorScheme:'light'});
     await page.reload();
-    await page.locator('.module-card').first().waitFor();
+    await page.locator('.welcome h1').waitFor();
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'light');
     await page.getByRole('button',{name:'Aktifkan mod gelap'}).click();
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
     assert.equal(await page.getByRole('button',{name:'Aktifkan mod cerah'}).getAttribute('aria-pressed'), 'true');
     await page.reload();
-    await page.locator('.module-card').first().waitFor();
+    await page.locator('.welcome h1').waitFor();
     assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark', 'Choice persists after reload');
     assert.deepEqual(await page.evaluate(()=>Object.keys(localStorage)), ['fpl-hsm-theme']);
     await page.getByRole('button',{name:'Aktifkan mod cerah'}).focus();
@@ -75,21 +77,43 @@ const assert = require('node:assert/strict');
     const systemContext = await browser.newContext({colorScheme:'dark'});
     const systemPage = await systemContext.newPage();
     await systemPage.goto(base);
-    await systemPage.locator('.module-card').first().waitFor();
+    await systemPage.locator('.welcome h1').waitFor();
     assert.equal(await systemPage.locator('html').getAttribute('data-theme'), 'dark');
     await systemPage.emulateMedia({colorScheme:'light'});
     await systemPage.waitForFunction(()=>document.documentElement.dataset.theme==='light');
     await systemContext.close();
+    // Feed content remains plain text; injected markup cannot create executable elements.
+    const notice = {title:'Test <img src=x onerror=alert(1)>',body:'First line\n<script>window.unsafe=true</script>',date:'2026-10-18'};
+    await page.route('**/announcements.json', route => route.fulfill({json:{announcements:[notice]}}));
+    await page.reload();
+    await page.locator('.announcement').waitFor();
+    assert.equal(await page.locator('.announcement h3').innerText(), notice.title);
+    assert.equal(await page.locator('.announcement-body').textContent(), notice.body);
+    assert.equal(await page.locator('.announcement img, .announcement script').count(), 0);
+    assert.equal(await page.evaluate(()=>window.unsafe), undefined);
+    assert.equal(await page.locator('.announcement time').getAttribute('datetime'), notice.date);
+    assert.equal(await page.locator('main textarea, main input, main [contenteditable="true"]').count(), 0);
+    await page.route('**/announcements.json', route => route.fulfill({status:503,body:'Unavailable'}));
+    await page.reload();
+    await page.getByRole('heading',{name:'Pengumuman tidak dapat dimuatkan'}).waitFor();
+    assert.equal(await page.locator('[data-route="planner"]').count(), 1, 'Navigation survives a feed failure');
+    await page.unroute('**/announcements.json');
+    await page.getByRole('button',{name:'Cuba semula'}).click();
+    await page.getByRole('heading',{name:'Belum ada pengumuman'}).waitFor();
+    await page.route('**/announcements.json', route => route.fulfill({json:{announcements:[{title:'Missing body'}]}}));
+    await page.reload();
+    await page.getByRole('heading',{name:'Pengumuman tidak dapat dimuatkan'}).waitFor();
+    await page.unroute('**/announcements.json');
     await page.goto(base + '/#unknown');
     await page.getByRole('heading', {name:'Halaman tidak dijumpai'}).waitFor();
     // Test missing-link states independently from the user's configured links.
     await page.route('**/config.json', route => route.fulfill({json:blankConfig}));
     await page.goto(base + '/#dashboard');
     await page.reload();
-    await page.locator('.module-card.myubat').waitFor();
-    assert.equal(await page.locator('.module-card.myubat').getAttribute('target'), null);
+    await page.locator('.welcome h1').waitFor();
+    assert.equal(await page.locator('[data-route="myubat"]').getAttribute('target'), null);
     assert.equal(await page.locator('[data-route="myubat"]').getAttribute('href'), '#myubat');
-    await page.locator('.module-card.myubat').click();
+    await page.locator('[data-route="myubat"]').click();
     await page.getByRole('heading', {name:'Pautan aplikasi belum ditetapkan'}).waitFor();
     assert.equal(await page.locator('a.primary-button').count(), 0);
     // Config failure, retry, and hostile static config handling.
@@ -104,6 +128,6 @@ const assert = require('node:assert/strict');
     await page.getByRole('alert').waitFor();
     assert.equal(await page.locator('a.primary-button').count(), 0);
     assert.deepEqual(errors, []);
-    console.log('Browser checks passed: one-click launches for all five cards and mobile shortcuts, keyboard launch, Hub retained, isolated popups, logo/favicon, desktop/tablet/mobile layouts, themes, clock and error states. External application requests were intercepted; live integrations were not accessed.');
+    console.log('Browser checks passed: read-only announcements, no duplicate home links, one-click sidebar and mobile shortcuts, keyboard launch, Hub retained, isolated popups, logo/favicon, desktop/tablet/mobile layouts, themes, clock and error states. External application requests were intercepted; live integrations were not accessed.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode=1; });
