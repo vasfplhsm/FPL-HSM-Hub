@@ -17,6 +17,7 @@ test('file-only notices are accepted, unsafe file IDs and arbitrary attachment U
   const attachment={provider:'drive',fileId:'test_file_123456789',name:'Notice.pdf',contentType:'application/pdf',size:123};
   assert.equal(validateAnnouncements({announcements:[{title:'Notice',body:'',attachment}]})[0].attachment.fileId,attachment.fileId);
   assert.match(attachmentLinks(attachment).view,/^https:\/\/drive\.google\.com\/file\/d\/test_file_123456789\/view$/);
+  assert.equal(attachmentLinks(attachment).preview,'https://drive.google.com/file/d/test_file_123456789/preview');
   for (const patch of [{fileId:'javascript:alert(1)'},{provider:'url',url:'https://example.com'},{contentType:'text/html'},{size:MAX_ATTACHMENT_SIZE+1},{size:-1}]) {
     assert.throws(()=>validateAttachment({...attachment,...patch}));
   }

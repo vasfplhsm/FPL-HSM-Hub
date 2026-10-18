@@ -50,11 +50,11 @@ test('HTTP serves the real Hub with security headers and denies source/private f
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   try {
-    for (const path of ['/', '/assets/app.js', '/assets/styles.css', '/assets/icons.js', '/assets/theme.js', '/config.json']) {
+    for (const path of ['/', '/assets/app.js', '/assets/styles.css', '/assets/icons.js', '/assets/theme.js', '/assets/attachment-viewer.js', '/config.json']) {
       const response = await fetch(base + path);
       assert.equal(response.status, 200, path);
       assert.equal(response.headers.get('referrer-policy'), 'no-referrer');
-      assert.match(response.headers.get('content-security-policy'), /frame-src 'none'/);
+      assert.match(response.headers.get('content-security-policy'), /frame-src https:\/\/drive\.google\.com;/);
       assert.ok((await response.text()).length > 20);
     }
     const config = await (await fetch(base + '/config.json')).json();

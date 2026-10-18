@@ -14,6 +14,8 @@ The 23 Node tests pass, including file signature/type/size checks, metadata vali
 
 The attachment browser suite covers file-only PDF notices, upload failure/retry, local PNG preview, replacement/removal, visitor file links, mobile layout and cleanup on deletion. Firebase and Apps Script requests are intercepted; no live files or notices are created by those tests.
 
+The viewer browser suite (`tests/attachment-viewer-browser.cjs`) checks JPG/PNG opening inside the Hub, zoom in/out, 400% limit, fit-to-screen, scrollable enlarged content, plain-text filenames, modal keyboard focus/Escape, mobile/landscape layouts, dark mode, trusted PDF embed URLs, image-to-Drive fallback and frame cleanup on close/navigation. Image bytes are real fixtures; Google responses are intercepted. Google's embedded PDF toolbar and live sharing must be checked on the deployed site. The owner reported successful uploads before this viewer update.
+
 The owner's public Firebase configuration and supplied Apps Script `/exec` URL are now included. Read-only live Firestore and Apps Script health requests were blocked by this environment's network proxy (HTTP tunnel 403), so production Firebase sign-in, persistence, rule enforcement, browser CORS and Drive sharing remain **unverified**. This network result does not establish whether either service is working. The official Firestore emulator download was previously blocked as well. Deploy the updated Hosting files and Firestore rules, then follow the setup guides' live admin/non-admin checks; simulated services do not replace those checks.
 
 ## Manual acceptance before production

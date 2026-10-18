@@ -39,6 +39,8 @@ Once configured, announcements are read from Firestore and published directly fr
 
 The upload script verifies the Firebase token and enabled admin role before creating or managing Drive files. Files start private; sharing is enabled only after their announcement references them. The server checks file type, signature and size. Removal/replacement/deletion attempts to trash old files, and separate warnings report sharing/cleanup failures. Published attachments are public view-only files, so they must not contain patient or confidential staff information.
 
+Clicking an attachment opens a modal viewer inside the Hub. JPG/PNG images have zoom-in, zoom-out (up to 400%) and fit-to-screen controls, with scrolling to inspect enlarged content. PDFs use the embedded Google Drive viewer and its own zoom/page controls. If an image thumbnail cannot load, the same embedded viewer provides a fallback. The dialog supports Escape, keyboard focus containment, mobile full-screen layout and light/dark appearance. Download and external-open links remain optional fallbacks. See [the viewer update guide](docs/attachment-viewer.md) to update an existing Desktop folder while retaining custom configuration.
+
 ## Configure application links
 
 If `config/local.json` is missing, copy `config/example.json` to `config/local.json`. Keep the existing structure. In `modules`, replace each empty `url` with its approved staff-facing HTTPS application URL:
@@ -60,6 +62,7 @@ public/assets/icons.js     Local SVG icons (no icon CDN)
 public/assets/theme.js     Light/dark/system theme and display preference
 public/assets/announcements.js  Notice validation shared by browser and build
 public/assets/attachments.js  File signature/type/size validation and Drive links
+public/assets/attachment-viewer.js  In-app image zoom and embedded PDF viewing
 public/assets/announcement-backend.js  Firebase Auth and Firestore REST adapter
 public/assets/admin.js     Signed-in announcement editing interface
 public/assets/fpl-hsm-logo.png  Supplied original FPL HSM logo
@@ -76,6 +79,7 @@ tests/announcement-backend.test.js  Auth/mutation protocol tests with simulated 
 tests/browser.cjs          Optional browser regression checks
 tests/admin-browser.cjs    Admin UI tests with intercepted Firebase services
 tests/attachments-browser.cjs  Attachment UI tests with intercepted upload services
+tests/attachment-viewer-browser.cjs  Viewer zoom, focus, fallback and responsive checks
 tests/attachments.test.js  File type/signature/size and metadata validation
 tests/drive-backend.test.js  Upload, publication, retry and cleanup protocol
 tests/drive-script.test.js  Apps Script authorization and file ownership checks
@@ -154,6 +158,7 @@ npx playwright install chromium
 node tests/browser.cjs
 node tests/admin-browser.cjs
 node tests/attachments-browser.cjs
+node tests/attachment-viewer-browser.cjs
 ```
 
 If Chromium is already installed, set `CHROMIUM_PATH` instead of downloading a browser. In this cloud machine: `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`. Browser tests exercise Hub pages only; they never open live modules or submit patient/staff data.

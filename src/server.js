@@ -12,6 +12,7 @@ const files = new Map([
   ['/assets/app.js', ['assets/app.js', 'text/javascript; charset=utf-8']],
   ['/assets/announcements.js', ['assets/announcements.js', 'text/javascript; charset=utf-8']],
   ['/assets/attachments.js', ['assets/attachments.js', 'text/javascript; charset=utf-8']],
+  ['/assets/attachment-viewer.js', ['assets/attachment-viewer.js', 'text/javascript; charset=utf-8']],
   ['/assets/announcement-backend.js', ['assets/announcement-backend.js', 'text/javascript; charset=utf-8']],
   ['/assets/admin.js', ['assets/admin.js', 'text/javascript; charset=utf-8']],
   ['/assets/theme.js', ['assets/theme.js', 'text/javascript; charset=utf-8']],
@@ -19,7 +20,7 @@ const files = new Map([
   ['/assets/icons.js', ['assets/icons.js', 'text/javascript; charset=utf-8']]
 ]);
 export const securityHeaders = {
-  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: https://drive.google.com https://*.googleusercontent.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src 'none'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: https://drive.google.com https://*.googleusercontent.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'X-Frame-Options': 'DENY',

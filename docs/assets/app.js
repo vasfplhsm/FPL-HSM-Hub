@@ -3,6 +3,7 @@ import { validateAnnouncements } from './announcements.js';
 import { createAnnouncementBackend } from './announcement-backend.js';
 import { createAdminEditor } from './admin.js';
 import { attachmentLinks } from './attachments.js';
+import { createAttachmentViewer } from './attachment-viewer.js';
 
 const modules = {
   planner: { short: 'Planner Cuti', category: 'PENGURUSAN STAF', description: 'Rancang cuti, urus permohonan dan semak jadual pasukan anda.', features: ['Hantar & batal cuti / off', 'Ringkasan bulanan & mingguan', 'Pengesahan passkey staf'], note: 'Permohonan, pembatalan, passkey dan peraturan tempahan kekal di aplikasi Planner asal.' },
@@ -18,6 +19,7 @@ const main = document.querySelector('main');
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const badge = module => `<span class="status ${module.url ? 'configured' : ''}"><span></span>${module.url ? 'Pautan tersedia' : 'Belum disambungkan'}</span>`;
 const ids = Object.keys(modules);
+const attachmentViewer=createAttachmentViewer();
 
 function moduleLink(id) {
   const url = config.modules[id].url;
@@ -53,14 +55,18 @@ function paintAnnouncements() {
   } else if (!announcements.items.length) {
     content.innerHTML = `<div class="announcement-state">${icon('announcement')}<h3>Belum ada pengumuman</h3><p>Makluman baharu akan dipaparkan di sini.</p></div>`;
   } else {
-    content.innerHTML = announcements.items.map(item => {
+    content.innerHTML = announcements.items.map((item,index) => {
       const date = item.date ? new Intl.DateTimeFormat('ms-MY', {timeZone:'Asia/Kuala_Lumpur', day:'numeric', month:'long', year:'numeric'}).format(new Date(item.date + 'T00:00:00+08:00')) : '';
       const attachment=item.attachment;
       const links=attachment?attachmentLinks(attachment):null;
-      const file=attachment?`<div class="announcement-attachment">${attachment.contentType.startsWith('image/')?`<a href="${escape(links.view)}" target="_blank" rel="noopener noreferrer" aria-label="Lihat ${escape(attachment.name)} (tab baharu)"><img class="announcement-image" src="${escape(links.image)}" alt="${escape(attachment.name)}" loading="lazy" referrerpolicy="no-referrer"></a>`:''}<a class="attachment-file" href="${escape(attachment.contentType==='application/pdf'?links.download:links.view)}" target="_blank" rel="noopener noreferrer">${icon('external')}<span>${escape(attachment.name)}<small>${attachment.contentType==='application/pdf'?'PDF':'Imej'} · ${(attachment.size/1024/1024).toFixed(2)} MB · ${attachment.contentType==='application/pdf'?'Muat turun PDF':'Buka imej'}</small></span></a>${attachment.contentType==='application/pdf'?`<a class="attachment-view" href="${escape(links.view)}" target="_blank" rel="noopener noreferrer">Lihat PDF dalam Google Drive</a>`:''}</div>`:'';
+      const file=attachment?`<div class="announcement-attachment">${attachment.contentType.startsWith('image/')?`<button class="attachment-thumbnail" type="button" data-open-attachment="${index}" aria-label="Lihat ${escape(attachment.name)}"><img class="announcement-image" src="${escape(links.image)}" alt="${escape(attachment.name)}" loading="lazy" referrerpolicy="no-referrer"></button>`:''}<button class="attachment-file" type="button" data-open-attachment="${index}" aria-haspopup="dialog">${icon('preview')}<span>${escape(attachment.name)}<small>${attachment.contentType==='application/pdf'?'PDF':'Imej'} · ${(attachment.size/1024/1024).toFixed(2)} MB · Klik untuk lihat & zum</small></span></button></div>`:'';
       return `<article class="announcement"><div class="announcement-meta"><span class="announcement-label">Pengumuman</span>${date ? `<time datetime="${escape(item.date)}">${escape(date)}</time>` : ''}</div><h3>${escape(item.title)}</h3>${item.body?`<p class="announcement-body">${escape(item.body)}</p>`:''}${file}</article>`;
     }).join('');
     content.querySelectorAll('.announcement-image').forEach(image=>image.addEventListener('error',()=>{ image.parentElement.hidden=true; },{once:true}));
+    content.querySelectorAll('[data-open-attachment]').forEach(button=>button.addEventListener('click',()=>{
+      const attachment=announcements.items[Number(button.dataset.openAttachment)]?.attachment;
+      if(attachment)attachmentViewer.open(attachment,button);
+    }));
   }
 }
 

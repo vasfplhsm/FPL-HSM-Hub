@@ -10,7 +10,7 @@ export function validateAttachment(value) {
 
 export function attachmentLinks(value) {
   const item = validateAttachment(value), id = encodeURIComponent(item.fileId);
-  return {view:`https://drive.google.com/file/d/${id}/view`,download:`https://drive.google.com/uc?export=download&id=${id}`,image:`https://drive.google.com/thumbnail?id=${id}&sz=w1600`};
+  return {view:`https://drive.google.com/file/d/${id}/view`,preview:`https://drive.google.com/file/d/${id}/preview`,download:`https://drive.google.com/uc?export=download&id=${id}`,image:`https://drive.google.com/thumbnail?id=${id}&sz=w1600`,largeImage:`https://drive.google.com/thumbnail?id=${id}&sz=w4000`};
 }
 
 export async function validateUploadFile(file) {

@@ -38,7 +38,7 @@ const fs=require('node:fs');
    if(data.action==='delete'){assert.equal(Boolean(referenced),false);file.trashed=true;}
    return json(route,{ok:true});
   }
-  if(url.hostname==='drive.google.com')return route.fulfill({contentType:'image/png',body:png});
+  if(url.hostname==='drive.google.com')return url.pathname.endsWith('/preview')?route.fulfill({contentType:'text/html',body:'<!doctype html><title>Intercepted Drive preview</title><p>PDF viewer test frame</p>'}):route.fulfill({contentType:'image/png',body:png});
   throw Error('Unexpected external request '+url.hostname);
  });
  const admin=()=>page.getByRole('link',{name:'Pentadbir',exact:true}).click();
@@ -56,8 +56,10 @@ const fs=require('node:fs');
   rejectUpload=false;await post();await saved();assert.equal(uploadCount,1);assert.equal(notices.size,1);
   const firstFile=[...files.values()][0];assert.equal(firstFile.published,true);
   await page.locator('[data-route="dashboard"]').click();await page.locator('.attachment-file').waitFor();
-  assert.equal(await page.locator('.attachment-file').getAttribute('href'),'https://drive.google.com/uc?export=download&id=test_drive_file_1');
-  assert.equal(await page.getByRole('link',{name:'Lihat PDF dalam Google Drive'}).getAttribute('href'),'https://drive.google.com/file/d/test_drive_file_1/view');assert.equal(await page.locator('main form').count(),0);
+  const hubUrl=page.url();await page.locator('.attachment-file').click();await page.getByRole('dialog').waitFor();
+  assert.equal(page.url(),hubUrl);assert.equal(await page.locator('.viewer-frame').getAttribute('src'),'https://drive.google.com/file/d/test_drive_file_1/preview');
+  assert.equal(await page.getByRole('link',{name:'Muat turun',exact:true}).getAttribute('href'),'https://drive.google.com/uc?export=download&id=test_drive_file_1');
+  await page.getByRole('button',{name:'Tutup pratonton',exact:true}).click();assert.equal(await page.locator('.viewer-frame').count(),0);assert.equal(await page.locator('main form').count(),0);
   const visitor=await context.newPage();await visitor.goto(base);await visitor.locator('.attachment-file').waitFor();assert.equal(await visitor.locator('main input, main textarea').count(),0);await visitor.close();
   await admin();await page.getByRole('button',{name:'Sunting',exact:true}).click();
   const image={name:'poster.png',mimeType:'image/png',buffer:png};await page.locator('#notice-file').setInputFiles(image);await page.locator('.selected-preview').waitFor();
