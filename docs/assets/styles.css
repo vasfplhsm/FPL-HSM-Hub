@@ -151,15 +151,19 @@ h2 { font-size: 20px; font-weight: 650; margin-bottom: 5px; }
 .viewer-close { flex-shrink: 0; gap: 12px; }
 .viewer-close > span { font-size: 24px; line-height: 1; }
 .viewer-toolbar { grid-row: 2; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; padding: 0 22px 12px; border-bottom: 1px solid var(--border); }
-.viewer-zoom { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.viewer-zoom > button { min-width: 44px; }
-.viewer-zoom-level { min-width: 48px; text-align: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+.viewer-controls { display: flex; align-items: center; gap: 8px 18px; flex-wrap: wrap; }
+.viewer-zoom, .viewer-rotation, .viewer-pages { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.viewer-controls button { min-width: 44px; }
+.viewer-zoom-level, .viewer-angle, .viewer-page-number { min-width: 48px; text-align: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+.viewer-rotation > button[data-rotate]:not([data-rotate="reset"]) { font-size: 22px; padding-top: 4px; padding-bottom: 4px; }
 .viewer-toolbar p { flex: 1 1 240px; font-size: 12px; margin: 0; }
 .viewer-status { grid-row: 3; padding: 10px 22px; font-size: 13px; color: var(--muted); }
 .viewer-stage { grid-row: 4; overflow: auto; min-height: 0; min-width: 0; background: var(--bg); overscroll-behavior: contain; }
 .viewer-stage:focus-visible { outline: 2px solid var(--teal); outline-offset: -3px; }
 .viewer-image-surface { display: grid; place-items: center; min-width: 100%; min-height: 100%; width: max-content; padding: 16px; }
-.viewer-image { display: block; max-width: none; object-fit: contain; background: #fff; }
+.viewer-media-box { position: relative; flex-shrink: 0; }
+.viewer-image { position: absolute; top: 50%; left: 50%; display: block; max-width: none; object-fit: contain; background: #fff; }
+.viewer-pdf-canvas { display: block; background: #fff; }
 .viewer-frame { display: block; width: 100%; height: 100%; min-height: 200px; border: 0; background: #fff; }
 .viewer-footer { grid-row: 5; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; padding: 12px 22px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); }
 .viewer-footer > div { display: flex; flex-wrap: wrap; gap: 8px; }

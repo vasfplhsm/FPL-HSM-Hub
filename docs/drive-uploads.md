@@ -2,9 +2,11 @@
 
 Files are stored in your Google Drive through a dedicated Apps Script web app. Firebase Authentication and Firestore remain on Spark. This does **not** use Firebase Storage or require enabling Blaze. Google Drive capacity and Apps Script free quotas still apply.
 
-Admins can attach **one JPG, PNG or PDF, up to 5 MB**, to each announcement. A title is required; text is optional when a file is attached. Visitors click the image or file button to open its preview inside the Hub. Images have zoom-in/out and fit-to-screen controls; PDFs use the embedded Drive viewer's zoom/page controls. Published files are shared as **anyone with the link, view only**. They must be suitable for the public announcement board.
+Admins can attach **one JPG, PNG or PDF, up to 5 MB**, to each announcement. A title is required; text is optional when a file is attached. Visitors click the image or file button to open its preview inside the Hub, with zoom, fit-to-screen and left/right rotation controls. PDFs also have page navigation through a locally bundled PDF.js renderer. Published files are shared as **anyone with the link, view only**. They must be suitable for the public announcement board.
 
 **Current setup:** the owner's supplied Apps Script `/exec` URL is already configured in the public build and Desktop ZIP. If you completed script setup, proceed to step 3 to deploy the updated website and Firestore rules. The live service has not been verified here; its health request was blocked by this environment's network proxy.
+
+**Rotation update:** owners who already have working uploads must also update their existing script with the current `DriveUploads.gs`, then choose **Manage deployments → Edit → New version → Deploy**, retaining its URL and properties. This enables the new public `readPdf` operation; it only serves PDFs currently referenced by a published notice, in the dedicated folder and shared publicly as view-only. Other Drive files and private drafts cannot be read through it. See [the viewer update guide](attachment-viewer.md).
 
 ## 1. Create the dedicated upload script
 
@@ -61,7 +63,7 @@ If using the updated Desktop ZIP, its public Firebase project configuration and 
 1. Open **Pentadbir** and sign in with your existing Firebase admin account.
 2. Enter the announcement title and optional text/date. Choose a file under **Lampiran**. Images have a local preview before publication.
 3. Press **Terbitkan pengumuman**. Upload/save controls are disabled while processing to avoid duplicate requests.
-4. Confirm the image or PDF opens inside the Hub in a private/incognito browser, with no editor available to visitors. Check the image zoom controls and PDF viewer's built-in zoom/page controls on your devices.
+4. Confirm JPG, PNG and PDF open inside the Hub in a private/incognito browser, with no editor available to visitors. Check zoom, left/right rotation, reset and PDF page navigation on your devices.
 5. Verify a non-admin account cannot use the upload endpoint, even if it has its own Firebase token. Test replacing and removing an attachment, and deleting its announcement.
 
 New files stay private until the service verifies their Firestore announcement reference. Removing/replacing a published attachment trashes the old file after the announcement changes. Deleting a notice removes the record before trashing its file. Cleanup/share failures are reported separately from successful publication, so the editor does not invite duplicate posts.
@@ -79,5 +81,6 @@ Google Drive thumbnails may take time to become available. If the enlarged image
 | Sign-in verification fails only in Apps Script | Check that the server uses the same Firebase project/key. A key restricted to browser HTTP referrers cannot be used by Apps Script server requests; use an appropriate separate API-restricted key for server validation if you configured such restrictions. |
 | Save is rejected after upload | Publish the updated Firestore rules. Concurrent edits are also rejected when the record changed; reload and reselect the latest notice. |
 | Published file cannot be opened | Check sharing policy and save the notice again to retry sharing. Keep attachment files in the dedicated folder. |
+| PDF has no Hub rotate buttons | Update the existing Apps Script deployment to the latest `DriveUploads.gs` version and deploy the new website. Failed or unsupported PDFs use the previous Drive fallback. |
 
 Local tests use simulated Firebase/Apps Script services. Actual Apps Script cross-origin behavior, Drive sharing and updated Firestore rules must be verified after deploying the updated website and rules.

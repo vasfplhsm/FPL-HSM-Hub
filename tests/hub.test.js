@@ -62,6 +62,12 @@ test('HTTP serves the real Hub with security headers and denies source/private f
     const logo = await fetch(base + '/assets/fpl-hsm-logo.png');
     assert.equal(logo.headers.get('content-type'), 'image/png');
     assert.deepEqual([...new Uint8Array(await logo.arrayBuffer()).slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    for(const path of ['/assets/vendor/pdfjs/pdf.worker.mjs','/assets/vendor/pdfjs/standard_fonts/LiberationSans-Regular.ttf','/assets/vendor/pdfjs/cmaps/Adobe-Japan1-UCS2.bcmap','/assets/vendor/pdfjs/iccs/CGATS001Compat-v2-micro.icc']) {
+      assert.equal((await fetch(base+path)).status,200,path);
+    }
+    const wasm=await fetch(base+'/assets/vendor/pdfjs/wasm/openjpeg.wasm');
+    assert.equal(wasm.headers.get('content-type'),'application/wasm');
+    assert.deepEqual([...new Uint8Array(await wasm.arrayBuffer()).slice(0,4)],[0,97,115,109]);
     for (const path of ['/config/local.json', '/src/server.js', '/.git/config', '/attachments/file', '/not-found', '/%2e%2e/config/local.json']) {
       assert.equal((await fetch(base + path)).status, 404, path);
     }

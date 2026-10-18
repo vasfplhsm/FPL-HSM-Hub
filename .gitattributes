@@ -1,0 +1,9 @@
+*.pdf binary
+*.bcmap binary
+*.pfb binary
+*.ttf binary
+*.icc binary
+*.wasm binary
+# Keep third-party licenses and distribution assets byte-for-byte intact.
+public/assets/vendor/pdfjs/** -whitespace linguist-vendored
+docs/assets/vendor/pdfjs/** -whitespace linguist-vendored

@@ -39,7 +39,7 @@ Once configured, announcements are read from Firestore and published directly fr
 
 The upload script verifies the Firebase token and enabled admin role before creating or managing Drive files. Files start private; sharing is enabled only after their announcement references them. The server checks file type, signature and size. Removal/replacement/deletion attempts to trash old files, and separate warnings report sharing/cleanup failures. Published attachments are public view-only files, so they must not contain patient or confidential staff information.
 
-Clicking an attachment opens a modal viewer inside the Hub. JPG/PNG images have zoom-in, zoom-out (up to 400%) and fit-to-screen controls, with scrolling to inspect enlarged content. PDFs use the embedded Google Drive viewer and its own zoom/page controls. If an image thumbnail cannot load, the same embedded viewer provides a fallback. The dialog supports Escape, keyboard focus containment, mobile full-screen layout and light/dark appearance. Download and external-open links remain optional fallbacks. See [the viewer update guide](docs/attachment-viewer.md) to update an existing Desktop folder while retaining custom configuration.
+Clicking an attachment opens a modal viewer inside the Hub. JPG, PNG and PDF support zoom (up to 400%), fit-to-screen and left/right rotation in 90° steps. **Asal** resets zoom and rotation without changing the original file. PDFs use locally bundled Mozilla PDF.js, with page navigation and readable upright controls. The updated Apps Script service supplies bytes only for currently published, publicly shared PDFs in the Hub folder. If interactive rendering is unavailable, an embedded Drive preview remains a fallback without Hub rotation controls. The dialog supports Escape, keyboard focus containment, mobile full-screen layout and light/dark appearance. See [the viewer update guide](docs/attachment-viewer.md) to update the website **and existing Apps Script deployment**, retaining custom configuration.
 
 ## Configure application links
 
@@ -62,7 +62,10 @@ public/assets/icons.js     Local SVG icons (no icon CDN)
 public/assets/theme.js     Light/dark/system theme and display preference
 public/assets/announcements.js  Notice validation shared by browser and build
 public/assets/attachments.js  File signature/type/size validation and Drive links
-public/assets/attachment-viewer.js  In-app image zoom and embedded PDF viewing
+public/assets/attachment-viewer.js  In-app zoom, rotation and PDF page navigation
+public/assets/attachment-preview.js  Validated public PDF byte requests
+public/assets/pdf-renderer.js  Lazy PDF.js document loading and worker lifecycle
+public/assets/vendor/pdfjs/  Bundled PDF.js 6.4.299, fonts/decoders and licenses
 public/assets/announcement-backend.js  Firebase Auth and Firestore REST adapter
 public/assets/admin.js     Signed-in announcement editing interface
 public/assets/fpl-hsm-logo.png  Supplied original FPL HSM logo
@@ -80,6 +83,8 @@ tests/browser.cjs          Optional browser regression checks
 tests/admin-browser.cjs    Admin UI tests with intercepted Firebase services
 tests/attachments-browser.cjs  Attachment UI tests with intercepted upload services
 tests/attachment-viewer-browser.cjs  Viewer zoom, focus, fallback and responsive checks
+tests/pdf-viewer-browser.cjs  Actual multi-page PDF rendering/rotation checks
+tests/attachment-preview.test.js  Public PDF response and request validation
 tests/attachments.test.js  File type/signature/size and metadata validation
 tests/drive-backend.test.js  Upload, publication, retry and cleanup protocol
 tests/drive-script.test.js  Apps Script authorization and file ownership checks
@@ -159,6 +164,7 @@ node tests/browser.cjs
 node tests/admin-browser.cjs
 node tests/attachments-browser.cjs
 node tests/attachment-viewer-browser.cjs
+node tests/pdf-viewer-browser.cjs
 ```
 
 If Chromium is already installed, set `CHROMIUM_PATH` instead of downloading a browser. In this cloud machine: `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`. Browser tests exercise Hub pages only; they never open live modules or submit patient/staff data.

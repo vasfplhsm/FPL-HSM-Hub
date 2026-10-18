@@ -13,6 +13,6 @@ export function validateAnnouncements(input) {
   }
   return input.announcements.map(item => {
     const attachment = item?.attachment == null ? null : validateAttachment(item.attachment);
-    return {...validateNoticeText(item,Boolean(attachment)),...(attachment?{attachment}:{})};
+    return {...validateNoticeText(item,Boolean(attachment)),...(typeof item.id==='string' && /^[A-Za-z0-9_-]{1,128}$/.test(item.id)?{id:item.id}:{}),...(attachment?{attachment}:{})};
   }).sort((a, b) => b.date.localeCompare(a.date));
 }

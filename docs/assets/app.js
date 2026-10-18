@@ -4,6 +4,7 @@ import { createAnnouncementBackend } from './announcement-backend.js';
 import { createAdminEditor } from './admin.js';
 import { attachmentLinks } from './attachments.js';
 import { createAttachmentViewer } from './attachment-viewer.js';
+import { readPublishedPdf } from './attachment-preview.js';
 
 const modules = {
   planner: { short: 'Planner Cuti', category: 'PENGURUSAN STAF', description: 'Rancang cuti, urus permohonan dan semak jadual pasukan anda.', features: ['Hantar & batal cuti / off', 'Ringkasan bulanan & mingguan', 'Pengesahan passkey staf'], note: 'Permohonan, pembatalan, passkey dan peraturan tempahan kekal di aplikasi Planner asal.' },
@@ -19,7 +20,7 @@ const main = document.querySelector('main');
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const badge = module => `<span class="status ${module.url ? 'configured' : ''}"><span></span>${module.url ? 'Pautan tersedia' : 'Belum disambungkan'}</span>`;
 const ids = Object.keys(modules);
-const attachmentViewer=createAttachmentViewer();
+const attachmentViewer=createAttachmentViewer({loadPdf:(attachment,options)=>readPublishedPdf(config?.firebase,attachment,options.noticeId,options.signal)});
 
 function moduleLink(id) {
   const url = config.modules[id].url;
@@ -64,8 +65,8 @@ function paintAnnouncements() {
     }).join('');
     content.querySelectorAll('.announcement-image').forEach(image=>image.addEventListener('error',()=>{ image.parentElement.hidden=true; },{once:true}));
     content.querySelectorAll('[data-open-attachment]').forEach(button=>button.addEventListener('click',()=>{
-      const attachment=announcements.items[Number(button.dataset.openAttachment)]?.attachment;
-      if(attachment)attachmentViewer.open(attachment,button);
+      const item=announcements.items[Number(button.dataset.openAttachment)];
+      if(item?.attachment)attachmentViewer.open(item.attachment,button,{noticeId:item.id});
     }));
   }
 }

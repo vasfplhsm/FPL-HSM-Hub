@@ -25,7 +25,7 @@ const fs=require('node:fs');
    return json(route,{documents:[...notices].map(([name,fields])=>({name,fields}))});
   }
   if(url.hostname==='script.google.com'){
-   const data=request.postDataJSON();assert.equal(data.idToken,'test-token');
+   const data=request.postDataJSON();if(data.action==='readPdf')return json(route,{ok:false});assert.equal(data.idToken,'test-token');
    if(data.action==='upload'){
     if(rejectUpload)return json(route,{ok:false});
     const attachment={provider:'drive',fileId:'test_drive_file_'+(++uploadCount),name:data.name,contentType:data.contentType,size:Buffer.from(data.data,'base64').length};

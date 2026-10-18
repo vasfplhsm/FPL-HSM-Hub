@@ -1,4 +1,6 @@
-/** Dedicated upload web app. Execute as owner; access Anyone; every action verifies Firebase admin authorization. */
+/** Execute as owner; access Anyone. Writes require Firebase admin authorization.
+ * readPdf serves only a currently published, publicly shared PDF in the Hub folder.
+ */
 var UPLOAD_LIMIT = 5 * 1024 * 1024;
 
 function setupUploadFolder() {
@@ -6,14 +8,15 @@ function setupUploadFolder() {
   if (!props.getProperty('UPLOAD_FOLDER_ID')) props.setProperty('UPLOAD_FOLDER_ID', DriveApp.createFolder('FPL HSM Hub - Lampiran').getId());
 }
 
-function doGet() { return output_({ok:true,service:'FPL HSM attachment service'}); }
+function doGet() { return output_({ok:true,service:'FPL HSM attachment service',version:2}); }
 function doPost(e) {
   try {
     var raw = e && e.postData && e.postData.contents || '';
     if (raw.length > 8 * 1024 * 1024) throw requestError_('Fail terlalu besar.');
     var p = JSON.parse(raw);
-    if (['upload','publish','delete'].indexOf(p.action) < 0) throw requestError_('Tindakan tidak sah.');
+    if (['upload','publish','delete','readPdf'].indexOf(p.action) < 0) throw requestError_('Tindakan tidak sah.');
     if (!/^[A-Za-z0-9_-]{1,128}$/.test(String(p.noticeId || ''))) throw requestError_('Rujukan pengumuman tidak sah.');
+    if (p.action === 'readPdf') return output_(readPdf_(p));
     var auth = authorize_(p.idToken);
     var folder = DriveApp.getFolderById(auth.folderId);
     if (p.action === 'upload') return output_(upload_(p,auth,folder));
@@ -61,6 +64,32 @@ function fetchDocument_(auth,path) {
   return JSON.parse(response.getContentText());
 }
 function notice_(auth,id) { return fetchDocument_(auth,'announcements/'+encodeURIComponent(id)); }
+
+// Anonymous reading is deliberately separate from authorize_ and write actions.
+// It cannot read a draft, an unshared file or an arbitrary Drive file ID.
+function readPdf_(p) {
+  if (!/^[A-Za-z0-9_-]{10,200}$/.test(String(p.fileId || ''))) throw requestError_('Rujukan fail tidak sah.');
+  var props=PropertiesService.getScriptProperties();
+  var projectId=props.getProperty('FIREBASE_PROJECT_ID'),apiKey=props.getProperty('FIREBASE_WEB_API_KEY'),folderId=props.getProperty('UPLOAD_FOLDER_ID');
+  if (!projectId || !apiKey || !folderId) throw requestError_('Persediaan pratonton belum lengkap.');
+  var url='https://firestore.googleapis.com/v1/projects/'+encodeURIComponent(projectId)+'/databases/(default)/documents/announcements/'+encodeURIComponent(p.noticeId)+'?key='+encodeURIComponent(apiKey);
+  // No owner credential or client token is sent: Firestore must allow this public read.
+  var response=UrlFetchApp.fetch(url,{muteHttpExceptions:true});
+  if (response.getResponseCode()!==200) throw requestError_('Pratonton tidak tersedia.');
+  var document=JSON.parse(response.getContentText());
+  var a=document.fields && document.fields.attachment && document.fields.attachment.mapValue && document.fields.attachment.mapValue.fields;
+  if (!a || !a.provider || a.provider.stringValue!=='drive' || !a.fileId || a.fileId.stringValue!==p.fileId || !a.contentType || a.contentType.stringValue!=='application/pdf') throw requestError_('Pratonton tidak tersedia.');
+  var expectedSize=a.size && Number(a.size.integerValue);
+  if (!(expectedSize>0 && expectedSize<=UPLOAD_LIMIT)) throw requestError_('Pratonton tidak tersedia.');
+  var file=DriveApp.getFileById(p.fileId),marker;
+  try {marker=JSON.parse(file.getDescription());} catch (_) {throw requestError_('Pratonton tidak tersedia.');}
+  var parents=file.getParents(),inFolder=false;
+  while(parents.hasNext())if(parents.next().getId()===folderId)inFolder=true;
+  if (!inFolder || !marker || marker.app!=='fpl-hsm-hub' || marker.projectId!==projectId || marker.noticeId!==p.noticeId || file.isTrashed() || file.getSharingAccess()!==DriveApp.Access.ANYONE_WITH_LINK || file.getSharingPermission()!==DriveApp.Permission.VIEW || file.getMimeType()!=='application/pdf' || file.getSize()!==expectedSize) throw requestError_('Pratonton tidak tersedia.');
+  var bytes=file.getBlob().getBytes();
+  if (bytes.length!==expectedSize || ![37,80,68,70,45].every(function(n,i){return ((bytes[i]+256)%256)===n;})) throw requestError_('Pratonton tidak tersedia.');
+  return {ok:true,fileId:p.fileId,contentType:'application/pdf',size:bytes.length,data:Utilities.base64Encode(bytes)};
+}
 
 function upload_(p,auth,folder) {
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(String(p.operationId || '')) || typeof p.name !== 'string' || !p.name.trim() || p.name.length > 160 || typeof p.data !== 'string') throw requestError_('Maklumat fail tidak sah.');

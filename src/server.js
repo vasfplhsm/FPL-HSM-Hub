@@ -13,6 +13,8 @@ const files = new Map([
   ['/assets/announcements.js', ['assets/announcements.js', 'text/javascript; charset=utf-8']],
   ['/assets/attachments.js', ['assets/attachments.js', 'text/javascript; charset=utf-8']],
   ['/assets/attachment-viewer.js', ['assets/attachment-viewer.js', 'text/javascript; charset=utf-8']],
+  ['/assets/attachment-preview.js', ['assets/attachment-preview.js', 'text/javascript; charset=utf-8']],
+  ['/assets/pdf-renderer.js', ['assets/pdf-renderer.js', 'text/javascript; charset=utf-8']],
   ['/assets/announcement-backend.js', ['assets/announcement-backend.js', 'text/javascript; charset=utf-8']],
   ['/assets/admin.js', ['assets/admin.js', 'text/javascript; charset=utf-8']],
   ['/assets/theme.js', ['assets/theme.js', 'text/javascript; charset=utf-8']],
@@ -20,7 +22,7 @@ const files = new Map([
   ['/assets/icons.js', ['assets/icons.js', 'text/javascript; charset=utf-8']]
 ]);
 export const securityHeaders = {
-  'Content-Security-Policy': "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob: https://drive.google.com https://*.googleusercontent.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+  'Content-Security-Policy': "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; font-src 'self' blob:; style-src 'self'; img-src 'self' blob: https://drive.google.com https://*.googleusercontent.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com https://script.google.com https://script.googleusercontent.com; frame-src https://drive.google.com; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'X-Frame-Options': 'DENY',
@@ -35,10 +37,14 @@ export function createHubServer(config) {
       const path = new URL(req.url, 'http://localhost').pathname;
       if (path === '/config.json') return send(200, 'application/json', JSON.stringify(config));
       if (path === '/announcements.json') return send(200, 'application/json', await readFile(new URL('../docs/announcements.json', import.meta.url)));
-      const entry = files.get(path);
+      let entry = files.get(path);
+      if(!entry && /^\/assets\/vendor\/pdfjs\/(?:pdf(?:\.worker)?\.mjs|cmaps\/[A-Za-z0-9_-]+\.bcmap|standard_fonts\/[A-Za-z0-9_.-]+\.(?:pfb|ttf)|iccs\/[A-Za-z0-9_.-]+\.icc|wasm\/[A-Za-z0-9_.-]+\.(?:wasm|js))$/.test(path)) {
+        const type=path.endsWith('.mjs')||path.endsWith('.js')?'text/javascript; charset=utf-8':path.endsWith('.wasm')?'application/wasm':'application/octet-stream';
+        entry=[path.slice(1),type];
+      }
       if (!entry) return send(404, 'text/plain', 'Not found');
       send(200, entry[1], await readFile(new URL(entry[0], publicRoot)));
-    } catch { send(500, 'text/plain', 'Unable to load Hub'); }
+    } catch(error) { send(error.code==='ENOENT'?404:500, 'text/plain', 'Unable to load Hub'); }
   });
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
