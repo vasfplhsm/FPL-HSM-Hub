@@ -1,19 +1,23 @@
-# Desktop download
+# Desktop downloads
 
-[Download FPL-HSM-Hub-Firebase.zip](https://github.com/vasfplhsm/FPL-HSM-Hub/raw/refs/heads/main/downloads/FPL-HSM-Hub-Firebase.zip)
+[Download the Viewer Update ZIP](https://github.com/vasfplhsm/FPL-HSM-Hub/raw/refs/heads/main/downloads/FPL-HSM-Hub-Viewer-Update.zip) for your existing Desktop folder. It opens attachments inside the Hub with image zoom controls and embedded PDF viewing. This package contains **no configuration folder** and leaves your custom `config/local.json` untouched.
 
-Extract the ZIP to your Desktop, open the `FPL-HSM-Hub` folder, and read `START-HERE.txt`. The ZIP includes the supplied public Firebase configuration, Apps Script upload URL and application links in `config/local.json`. Preserve any newer local settings in your existing folder.
-
-To activate JPG/PNG/PDF attachments, deploy **both Hosting and Firestore rules** to your existing project:
+Extract the update and copy `public/`, `src/`, `tests/` and `firebase.json` into your existing Hub folder, replacing matching files. Keep your `config/` folder. Then run these commands from your existing Hub folder:
 
 ```sh
-npm test
 npm run build
-firebase deploy --only "hosting,firestore:rules" --project fpl-hsm-pharmacy-hub
+firebase deploy --only hosting --project fpl-hsm-pharmacy-hub
 ```
 
-Read the [Drive upload guide](../docs/drive-uploads.md) and [Firebase Hosting guide](../docs/firebase-hosting.md). No Firebase Storage or Blaze upgrade is needed. Live uploads, sharing and production permissions still require verification on your deployed site.
+Your previously deployed Apps Script service and Firestore rules still apply. Existing attachments do not need uploading again. See the [viewer update guide](../docs/attachment-viewer.md).
 
-This is a source snapshot of commit `ac9b497`. It contains no Git credentials or Firebase CLI login state. It is a Desktop download, not part of the Firebase Hosting `dist/` deployment.
+[Download the complete FPL-HSM-Hub-Firebase.zip](https://github.com/vasfplhsm/FPL-HSM-Hub/raw/refs/heads/main/downloads/FPL-HSM-Hub-Firebase.zip) for a fresh installation. That package includes the supplied baseline public configuration in `config/local.json`; preserve or merge any newer local settings. Read `START-HERE.txt` and the [Firebase Hosting guide](../docs/firebase-hosting.md). Fresh installations also need the supplied Firestore rules and [Drive upload setup](../docs/drive-uploads.md).
 
-SHA-256: `a7fa817c81366f8e92f7f60966112498888f0601492aab8d157018e6a6504446`
+Both packages use source snapshot `0a578df` and contain no Git credentials or Firebase CLI login state. They are Desktop downloads, outside Firebase Hosting's `dist/` deployment. Files stay in Google Drive while Firebase remains on Spark.
+
+Local viewer tests use simulated Google responses. Google's actual embedded PDF zoom/page controls need checking on your deployed site.
+
+SHA-256:
+
+- Viewer update: `b74c50c72144e50c38ca0eb90908b2c4165576d3f98b646433b80445fa34e2a5`
+- Complete folder: `7be28dad78dbf5ad57e68cbd6247ff7c022ff812c0b96ab10d51b0684a4554d0`
