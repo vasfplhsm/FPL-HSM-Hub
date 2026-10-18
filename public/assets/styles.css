@@ -155,7 +155,7 @@ h2 { font-size: 20px; font-weight: 650; margin-bottom: 5px; }
 .privacy-note p { font-size: 12px; margin: 0; }
 .privacy-note strong { font-weight: 650; color: var(--text); }
 footer { border-top: 1px solid var(--border); padding: 20px 36px; display: flex; justify-content: space-between; gap: 15px; font-size: 11px; color: var(--muted); }
-.established { display: block; margin-top: 4px; font-size: inherit; letter-spacing: .05em; }
+.footer-name { min-width: 0; overflow-wrap: anywhere; }
 .module-heading { display: flex; gap: 22px; align-items: center; margin: 35px 0; }
 .module-heading h1 { margin: 8px 0 12px; }
 .module-heading p { margin: 0; font-size: 14px; }
@@ -265,7 +265,7 @@ footer { border-top: 1px solid var(--border); padding: 20px 36px; display: flex;
   .guide-panel p { font-size: 13px; }
   .steps { gap: 10px; }
   .privacy-note { align-items: flex-start; padding: 14px; }
-  footer { padding: 18px 20px; font-size: 10px; }
+  footer { padding: 18px 20px; font-size: 12px; line-height: 1.7; }
   footer span:last-child { display: none; }
   .module-heading { align-items: flex-start; gap: 14px; }
   .module-heading .module-icon { width: 48px; height: 48px; }

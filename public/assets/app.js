@@ -93,6 +93,9 @@ async function initialize() {
       }
     }
     config = data;
+    // Keep the footer consistent with current branding, including older cached HTML.
+    const footerName = document.querySelector('footer > span');
+    if (footerName) footerName.textContent = config.title;
     navigation(); render();
   } catch {
     main.innerHTML = `<section class="integration-panel" role="alert"><span class="module-icon">${icon('info')}</span><h1>Hub tidak dapat dimuatkan</h1><p>Konfigurasi tidak tersedia atau tidak sah. Cuba semula atau hubungi pentadbir.</p><button class="primary-button" id="retry">Cuba semula</button></section>`;
