@@ -2,6 +2,7 @@ import { icon } from './icons.js';
 import { validateAnnouncements } from './announcements.js';
 import { createAnnouncementBackend } from './announcement-backend.js';
 import { createAdminEditor } from './admin.js';
+import { attachmentLinks } from './attachments.js';
 
 const modules = {
   planner: { short: 'Planner Cuti', category: 'PENGURUSAN STAF', description: 'Rancang cuti, urus permohonan dan semak jadual pasukan anda.', features: ['Hantar & batal cuti / off', 'Ringkasan bulanan & mingguan', 'Pengesahan passkey staf'], note: 'Permohonan, pembatalan, passkey dan peraturan tempahan kekal di aplikasi Planner asal.' },
@@ -54,8 +55,12 @@ function paintAnnouncements() {
   } else {
     content.innerHTML = announcements.items.map(item => {
       const date = item.date ? new Intl.DateTimeFormat('ms-MY', {timeZone:'Asia/Kuala_Lumpur', day:'numeric', month:'long', year:'numeric'}).format(new Date(item.date + 'T00:00:00+08:00')) : '';
-      return `<article class="announcement"><div class="announcement-meta"><span class="announcement-label">Pengumuman</span>${date ? `<time datetime="${escape(item.date)}">${escape(date)}</time>` : ''}</div><h3>${escape(item.title)}</h3><p class="announcement-body">${escape(item.body)}</p></article>`;
+      const attachment=item.attachment;
+      const links=attachment?attachmentLinks(attachment):null;
+      const file=attachment?`<div class="announcement-attachment">${attachment.contentType.startsWith('image/')?`<a href="${escape(links.view)}" target="_blank" rel="noopener noreferrer" aria-label="Lihat ${escape(attachment.name)} (tab baharu)"><img class="announcement-image" src="${escape(links.image)}" alt="${escape(attachment.name)}" loading="lazy" referrerpolicy="no-referrer"></a>`:''}<a class="attachment-file" href="${escape(attachment.contentType==='application/pdf'?links.download:links.view)}" target="_blank" rel="noopener noreferrer">${icon('external')}<span>${escape(attachment.name)}<small>${attachment.contentType==='application/pdf'?'PDF':'Imej'} · ${(attachment.size/1024/1024).toFixed(2)} MB · ${attachment.contentType==='application/pdf'?'Muat turun PDF':'Buka imej'}</small></span></a>${attachment.contentType==='application/pdf'?`<a class="attachment-view" href="${escape(links.view)}" target="_blank" rel="noopener noreferrer">Lihat PDF dalam Google Drive</a>`:''}</div>`:'';
+      return `<article class="announcement"><div class="announcement-meta"><span class="announcement-label">Pengumuman</span>${date ? `<time datetime="${escape(item.date)}">${escape(date)}</time>` : ''}</div><h3>${escape(item.title)}</h3>${item.body?`<p class="announcement-body">${escape(item.body)}</p>`:''}${file}</article>`;
     }).join('');
+    content.querySelectorAll('.announcement-image').forEach(image=>image.addEventListener('error',()=>{ image.parentElement.hidden=true; },{once:true}));
   }
 }
 
@@ -127,6 +132,7 @@ async function initialize() {
     }
     if (data.firebase != null && (typeof data.firebase.projectId !== 'string' || typeof data.firebase.apiKey !== 'string' || !/^[A-Za-z0-9_-]{10,200}$/.test(data.firebase.apiKey) || !/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/.test(data.firebase.projectId))) throw new Error('Invalid Firebase configuration');
     config = data;
+    if (config.firebase?.driveUploadUrl != null && !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(config.firebase.driveUploadUrl)) throw new Error('Invalid upload service URL');
     backend = config.firebase ? createAnnouncementBackend(config.firebase) : null;
     admin = createAdminEditor(backend, loadAnnouncements);
     // Keep the footer consistent with current branding, including older cached HTML.

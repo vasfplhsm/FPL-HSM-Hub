@@ -11,6 +11,9 @@ const assert = require('node:assert/strict');
   const moduleIds = ['planner', 'myubat', 'katalog', 'formulary', 'farmasi'];
   const blankConfig = {title:'Hub',modules:Object.fromEntries(moduleIds.map(id=>[id,{name:id,url:''}]))};
   try {
+    const originalConfig=await(await fetch(base.replace(/\/$/,'')+'/config.json')).json();
+    // Public-board state tests use an isolated local feed, never the live Firebase project.
+    await page.route('**/config.json',route=>route.fulfill({json:{...originalConfig,firebase:null}}));
     // Intercept first popup requests at context level, before any live app is contacted.
     await page.context().route('**/*', route => {
       if (new URL(route.request().url()).origin !== new URL(base).origin) {

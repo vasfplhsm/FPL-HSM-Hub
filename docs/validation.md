@@ -10,7 +10,11 @@ The browser suite checks that the homepage contains the announcement board and n
 
 - `tests/admin-browser.cjs`: intercepted Firebase responses verify non-admin denial, admin sign-in, failed-save draft recovery, publishing, editing, confirmed deletion, read-only homepage, mobile editor layout, sign-out and memory-only session behavior.
 
-Executed outcomes: **12 Node tests passed**, the Pages build passed, and both browser suites passed with intercepted external services. The unconfigured admin page was also checked to show setup guidance with no login or publishing form, and desktop/mobile screenshots were inspected. No Firebase config has been supplied yet, so the deployed editor must remain disconnected. Production Firebase sign-in, persistence and rule enforcement are **unverified**. The official Firestore emulator download was blocked by the environment's network policy, so emulator rule execution was not completed either. Follow the setup guide's live admin/non-admin tests after connecting a project. Tests using simulated responses do not replace these checks.
+The 23 Node tests pass, including file signature/type/size checks, metadata validation, upload/commit/share ordering, private upload retry/cancellation, lost commit response recovery, cleanup warnings and concurrency preconditions. Apps Script code also executes in a Node VM with simulated Google services to check token/role enforcement, private/idempotent uploads, reference-gated sharing/deletion and folder/notice ownership. These are not deployed Apps Script tests.
+
+The attachment browser suite covers file-only PDF notices, upload failure/retry, local PNG preview, replacement/removal, visitor file links, mobile layout and cleanup on deletion. Firebase and Apps Script requests are intercepted; no live files or notices are created by those tests.
+
+The owner's public Firebase configuration and supplied Apps Script `/exec` URL are now included. Read-only live Firestore and Apps Script health requests were blocked by this environment's network proxy (HTTP tunnel 403), so production Firebase sign-in, persistence, rule enforcement, browser CORS and Drive sharing remain **unverified**. This network result does not establish whether either service is working. The official Firestore emulator download was previously blocked as well. Deploy the updated Hosting files and Firestore rules, then follow the setup guides' live admin/non-admin checks; simulated services do not replace those checks.
 
 ## Manual acceptance before production
 

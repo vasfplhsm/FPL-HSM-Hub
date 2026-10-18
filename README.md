@@ -6,6 +6,7 @@ A lightweight, responsive entry point for Farmasi Pesakit Luar, Hospital Seri Ma
 
 - Bahasa Melayu homepage with an announcement board; application shortcuts appear only in the sidebar and mobile navigation.
 - In-Hub admin announcement editor: email/password sign-in, publishing, editing, deletion confirmation and sign-out. Firebase setup is required before live publishing works; see the [step-by-step guide](docs/firebase-setup.md).
+- Optional JPG/PNG/PDF attachment uploads (one file up to 5 MB) through a dedicated Google Drive + Apps Script service. This keeps Firebase on Spark; [connect the upload service](docs/drive-uploads.md) to enable the file controls.
 - The supplied FPL HSM logo appears as the favicon, touch icon and main branding; teal, aqua and deep blue themes follow its colours.
 - Light/dark toggle in the header. The first visit follows the device theme; an explicit choice is remembered. Only the `fpl-hsm-theme` display preference is saved in browser storage.
 - Malaysia date and clock (`Asia/Kuala_Lumpur`), desktop sidebar and mobile bottom navigation.
@@ -32,9 +33,11 @@ Choose **Pentadbir** in the header to access the editor. Visitors see only publi
 
 The editor uses Firebase Authentication and Cloud Firestore through their official REST APIs. No SDK package, paid backend server or client-side admin password is added. Firestore rules enforce write authorization using an `admins/<Auth UID>` document with `enabled: true`; ordinary authenticated accounts still cannot publish. Admin role documents cannot be changed by the website.
 
-**Current setup:** no Firebase project configuration has been supplied yet. The public board has an empty local fallback, and the admin page clearly shows that the editor is not connected. Follow [the Firebase setup guide](docs/firebase-setup.md), then provide the public web-app configuration to connect it. Never send an admin password or service-account key.
+**Current setup:** the supplied public configuration for `fpl-hsm-pharmacy-hub` and the owner's deployed Apps Script upload URL are included. Deploy the updated Hosting files **and Firestore rules** to activate attachments. Live sign-in, rules, uploads and Drive sharing have not been verified from this environment because Google service checks were blocked by the network proxy. Follow [the Drive upload guide](docs/drive-uploads.md); Firebase Storage/Blaze is not used. Never send an admin password or service-account key.
 
 Once configured, announcements are read from Firestore and published directly from the admin editor without rebuilding GitHub Pages. If Firestore fails, an error/retry state appears; the Hub does not silently substitute old local notices. Tokens stay in memory and are cleared on sign-out or reload. The only persisted browser setting remains the colour theme.
+
+The upload script verifies the Firebase token and enabled admin role before creating or managing Drive files. Files start private; sharing is enabled only after their announcement references them. The server checks file type, signature and size. Removal/replacement/deletion attempts to trash old files, and separate warnings report sharing/cleanup failures. Published attachments are public view-only files, so they must not contain patient or confidential staff information.
 
 ## Configure application links
 
@@ -56,6 +59,7 @@ public/assets/app.js       Dashboard, module pages, navigation and states
 public/assets/icons.js     Local SVG icons (no icon CDN)
 public/assets/theme.js     Light/dark/system theme and display preference
 public/assets/announcements.js  Notice validation shared by browser and build
+public/assets/attachments.js  File signature/type/size validation and Drive links
 public/assets/announcement-backend.js  Firebase Auth and Firestore REST adapter
 public/assets/admin.js     Signed-in announcement editing interface
 public/assets/fpl-hsm-logo.png  Supplied original FPL HSM logo
@@ -71,7 +75,13 @@ tests/announcements.test.js  Notice validation and read-only local endpoint
 tests/announcement-backend.test.js  Auth/mutation protocol tests with simulated responses
 tests/browser.cjs          Optional browser regression checks
 tests/admin-browser.cjs    Admin UI tests with intercepted Firebase services
+tests/attachments-browser.cjs  Attachment UI tests with intercepted upload services
+tests/attachments.test.js  File type/signature/size and metadata validation
+tests/drive-backend.test.js  Upload, publication, retry and cleanup protocol
+tests/drive-script.test.js  Apps Script authorization and file ownership checks
 firebase/firestore.rules   Server-enforced announcement and admin permissions
+apps-script/DriveUploads.gs  Authenticated Drive upload/manage service
+docs/drive-uploads.md     Spark-compatible file upload setup
 docs/firebase-setup.md    Step-by-step Firebase setup
 docs/firebase-hosting.md  Desktop folder and Firebase Hosting deployment guide
 docs/announcements.json   Empty local fallback until Firebase is configured
@@ -92,17 +102,17 @@ Read [integration notes](docs/integration.md) before attempting deeper integrati
 
 ### Firebase Hosting (migration target)
 
-The project is prepared for Firebase Hosting using `firebase.json`, which uploads **only `dist/`** and applies the intended security headers. No Firebase project has been created or deployed yet. Start with the [Desktop and Firebase Hosting guide](docs/firebase-hosting.md), which includes project creation, admin setup and terminal commands.
+The project is prepared for Firebase Hosting using `firebase.json`, which uploads **only `dist/`** and applies the intended security headers. The supplied public project configuration is now included; this chat has not deployed to that Firebase project. See the [Desktop and Firebase Hosting guide](docs/firebase-hosting.md) for terminal commands, and the Drive guide for attachment setup.
 
-After creating your dedicated Firebase project, entering its public configuration in `config/local.json`, installing the Firebase CLI and signing in on your own computer:
+With the existing project configuration included, install the Firebase CLI if needed and sign in on your own computer, then run:
 
 ```sh
 npm test
 npm run build
-firebase deploy --only hosting --project YOUR_REAL_PROJECT_ID
+firebase deploy --only "hosting,firestore:rules" --project fpl-hsm-pharmacy-hub
 ```
 
-Use your actual project ID. The existing configuration means `firebase init` is unnecessary. Hosting deployment does not change Firestore rules; set those in Firebase Console as described in the setup guide. Keep GitHub Pages available until the new site and live announcement permissions have been verified. After connection, publishing announcements through the admin editor needs no website redeployment.
+This command updates Hosting and the attachment metadata rules in the dedicated Hub project. The existing configuration means `firebase init` is unnecessary. Keep GitHub Pages available until the new site and live announcement permissions have been verified. After connection, publishing announcements through the admin editor needs no website redeployment.
 
 ### GitHub Pages (existing site / optional backup)
 
@@ -143,6 +153,7 @@ npx playwright install chromium
 # Leave npm start running in another terminal:
 node tests/browser.cjs
 node tests/admin-browser.cjs
+node tests/attachments-browser.cjs
 ```
 
 If Chromium is already installed, set `CHROMIUM_PATH` instead of downloading a browser. In this cloud machine: `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`. Browser tests exercise Hub pages only; they never open live modules or submit patient/staff data.

@@ -7,7 +7,8 @@ export function validateFirebase(input) {
       typeof input.apiKey !== 'string' || !/^[A-Za-z0-9_-]{10,200}$/.test(input.apiKey)) {
     throw new Error('Firebase needs a valid public projectId and web apiKey.');
   }
-  return {projectId:input.projectId,apiKey:input.apiKey};
+  if (input.driveUploadUrl != null && !/^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(input.driveUploadUrl)) throw new Error('Use the deployed Apps Script /exec upload URL.');
+  return {projectId:input.projectId,apiKey:input.apiKey,...(input.driveUploadUrl?{driveUploadUrl:input.driveUploadUrl}:{})};
 }
 
 // Configuration is public metadata. Never put API credentials or Sheet IDs here.

@@ -4,6 +4,8 @@ Files are stored in your Google Drive through a dedicated Apps Script web app. F
 
 Admins can attach **one JPG, PNG or PDF, up to 5 MB**, to each announcement. A title is required; text is optional when a file is attached. Visitors see image previews and a link to open/download the file in Drive. Published files are shared as **anyone with the link, view only**. They must be suitable for the public announcement board.
 
+**Current setup:** the owner's supplied Apps Script `/exec` URL is already configured in the public build and Desktop ZIP. If you completed script setup, proceed to step 3 to deploy the updated website and Firestore rules. The live service has not been verified here; its health request was blocked by this environment's network proxy.
+
 ## 1. Create the dedicated upload script
 
 1. Sign in to the Google account that will own the announcement files.
@@ -52,7 +54,7 @@ npm run build
 firebase deploy --only "hosting,firestore:rules" --project fpl-hsm-pharmacy-hub
 ```
 
-If using the updated Desktop ZIP, its public Firebase project configuration is included. Preserve any newer local settings you have made, and add the upload URL before building. Do not run `firebase init`, enable Firebase Storage, or put an admin password in the configuration.
+If using the updated Desktop ZIP, its public Firebase project configuration and supplied upload URL are included. Preserve any newer local settings you have made. Do not run `firebase init`, enable Firebase Storage, or put an admin password in the configuration.
 
 ## 4. Use and verify uploads
 
@@ -78,4 +80,4 @@ Google Drive thumbnails may take time to become available. The file link remains
 | Save is rejected after upload | Publish the updated Firestore rules. Concurrent edits are also rejected when the record changed; reload and reselect the latest notice. |
 | Published file cannot be opened | Check sharing policy and save the notice again to retry sharing. Keep attachment files in the dedicated folder. |
 
-Local tests use simulated Firebase/Apps Script services. Actual Apps Script cross-origin behavior, Drive sharing and updated Firestore rules must be verified after you deploy the service and provide its URL.
+Local tests use simulated Firebase/Apps Script services. Actual Apps Script cross-origin behavior, Drive sharing and updated Firestore rules must be verified after deploying the updated website and rules.

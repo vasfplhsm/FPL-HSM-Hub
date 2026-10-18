@@ -9,15 +9,28 @@ service cloud.firestore {
     function validAnnouncement() {
       let data = request.resource.data;
       return data.keys().hasAll(['title', 'body', 'date', 'updatedAt'])
-        && data.keys().hasOnly(['title', 'body', 'date', 'updatedAt'])
+        && data.keys().hasOnly(['title', 'body', 'date', 'updatedAt', 'attachment'])
         && data.title is string && data.title.size() > 0 && data.title.size() <= 160
-        && data.body is string && data.body.size() > 0 && data.body.size() <= 8000
+        && data.body is string && data.body.size() <= 8000
+        && (data.body.size() > 0 || data.get('attachment', null) != null)
         && data.date is string && (data.date == '' || data.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
         && data.updatedAt == request.time;
     }
+    function validAttachment(data) {
+      return data.get('attachment', null) == null || (
+        data.attachment is map
+        && data.attachment.keys().hasAll(['provider','fileId','name','contentType','size'])
+        && data.attachment.keys().hasOnly(['provider','fileId','name','contentType','size'])
+        && data.attachment.provider == 'drive'
+        && data.attachment.fileId is string && data.attachment.fileId.matches('^[A-Za-z0-9_-]{10,200}$')
+        && data.attachment.name is string && data.attachment.name.size() > 0 && data.attachment.name.size() <= 160
+        && data.attachment.contentType in ['image/jpeg','image/png','application/pdf']
+        && data.attachment.size is int && data.attachment.size > 0 && data.attachment.size <= 5242880
+      );
+    }
     match /announcements/{id} {
       allow read: if true;
-      allow create, update: if isAdmin() && validAnnouncement();
+      allow create, update: if isAdmin() && validAnnouncement() && validAttachment(request.resource.data);
       allow delete: if isAdmin();
     }
     match /admins/{uid} {

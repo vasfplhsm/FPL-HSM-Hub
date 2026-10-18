@@ -2,7 +2,7 @@
 
 You can keep the `FPL-HSM-Hub` folder on your Desktop and deploy it from Terminal or PowerShell. Firebase Hosting will serve the website; Firebase Authentication and Firestore provide administrator sign-in and announcement storage. GitHub remains your code backup. No paid hosting upgrade is required for this static app, subject to Firebase's free Spark quotas.
 
-**Current status:** deployment files are prepared, but no Firebase project or website has been created or deployed by this chat. The project owner must create the project and sign in to the Firebase CLI. Keep the existing GitHub Pages site until the Firebase version is verified.
+**Current status:** public configuration for `fpl-hsm-pharmacy-hub` and the supplied Apps Script upload URL are included, and the owner reports completing Firebase setup. This chat has not verified or deployed the live Firebase site. Skip creation/account steps you already completed, and sign in to the Firebase CLI on your computer for updates. For this attachment update, deploy Hosting **and Firestore rules** using step 5. Attachment uploads use [Google Drive + Apps Script](drive-uploads.md), keeping Spark without Firebase Storage/Blaze.
 
 ## 1. Download and extract the folder
 
@@ -24,7 +24,7 @@ Use this dedicated project so deploying rules cannot change permissions for one 
 
 ## 3. Connect the local Hub configuration
 
-Open `config/local.json` in a text editor. Keep the existing title and application links. Change its `firebase` entry from `null` to:
+The current Desktop ZIP is already configured. Keep its existing title, application links and `firebase.driveUploadUrl`. For a fresh setup only, open `config/local.json` in a text editor and change its `firebase` entry from `null` to:
 
 ```json
 "firebase": {
@@ -58,10 +58,10 @@ Run these commands individually:
 ```sh
 npm test
 npm run build
-firebase deploy --only hosting --project YOUR_REAL_PROJECT_ID
+firebase deploy --only "hosting,firestore:rules" --project fpl-hsm-pharmacy-hub
 ```
 
-Replace `YOUR_REAL_PROJECT_ID` with the exact Firebase project ID. No `npm install` is required for the Hub itself. The project already includes `firebase.json`; **do not run `firebase init`**, which may offer to replace existing files.
+This uses the existing dedicated Hub project ID. The command publishes both Hosting and the updated Firestore attachment rules. No `npm install` is required for the Hub itself. The project already includes `firebase.json`; **do not run `firebase init`**, which may offer to replace existing files.
 
 Only the generated `dist/` folder is uploaded. Uploaded legacy sources, local configuration files and the repository's private tooling are outside the hosting directory. The build includes the intended public branding, application links and public Firebase configuration. Hosting applies the supplied security headers.
 
@@ -77,7 +77,7 @@ If Firebase reports that Hosting has not been initialized, open **Build → Host
 4. Complete the non-admin/revoked-admin checks in the Firebase setup guide.
 5. Share the new Hosting URL with staff. You may keep GitHub Pages as a backup; turning it off is optional and is not part of the prepared deployment.
 
-The Hosting deploy command does not publish Firestore rules or create admin accounts. The guide uses Firebase Console for those one-time tasks. If you later intentionally update rules in this dedicated Hub project, deploy them separately:
+The combined command in step 5 publishes the supplied Firestore rules; it does not create admin accounts. If you later intentionally update only rules in this dedicated Hub project, deploy them separately:
 
 ```sh
 firebase deploy --only firestore:rules --project YOUR_REAL_PROJECT_ID

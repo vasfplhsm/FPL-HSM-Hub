@@ -2,7 +2,11 @@
   "title": "Farmasi Pesakit Luar HSM Pharmacy Hub",
   "department": "Farmasi Pesakit Luar",
   "hospital": "Hospital Seri Manjung",
-  "firebase": null,
+  "firebase": {
+    "projectId": "fpl-hsm-pharmacy-hub",
+    "apiKey": "AIzaSyAkjoCtGvQCBmy3QUXijRp4Ir_okIZymRM",
+    "driveUploadUrl": "https://script.google.com/macros/s/AKfycbzHVRBgsmBPF2xyNTxmhaJfMg-aNmZ90A7l10gLsyGR8MMVrebxDHT6PXC6CiqcoC3P/exec"
+  },
   "modules": {
     "planner": {
       "name": "Planner Cuti FPL HSM",
