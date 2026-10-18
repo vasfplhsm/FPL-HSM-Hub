@@ -11,8 +11,28 @@ const assert = require('node:assert/strict');
   const moduleIds = ['planner', 'myubat', 'katalog', 'formulary', 'farmasi'];
   const blankConfig = {title:'Hub',modules:Object.fromEntries(moduleIds.map(id=>[id,{name:id,url:''}]))};
   try {
+    // Intercept first popup requests at context level, before any live app is contacted.
+    await page.context().route('**/*', route => {
+      if (new URL(route.request().url()).origin !== new URL(base).origin) {
+        return route.fulfill({contentType:'text/html',body:'<!doctype html><title>Intercepted application launch</title>'});
+      }
+      return route.continue();
+    });
     await page.goto(base);
     await page.locator('.module-card').first().waitFor();
+    const config = await page.evaluate(async () => (await fetch('config.json')).json());
+    async function verifyLaunch(link, expectedUrl, keyboard = false) {
+      const hubUrl = page.url();
+      const popupPromise = page.waitForEvent('popup');
+      if (keyboard) { await link.focus(); await page.keyboard.press('Enter'); }
+      else await link.click();
+      const popup = await popupPromise;
+      await popup.waitForLoadState('domcontentloaded');
+      assert.equal(popup.url(), expectedUrl, 'One action opens the configured application');
+      assert.equal(page.url(), hubUrl, 'Hub stays open without an intermediate page');
+      assert.equal(await popup.evaluate(() => window.opener === null), true);
+      await popup.close();
+    }
     assert.equal(await page.locator('.module-card').count(), 5);
     assert.equal(await page.locator('[data-route]').count(), 6);
     assert.equal(await page.locator('.header-logo').evaluate(img => img.complete && img.naturalWidth > 0), true);
@@ -22,22 +42,21 @@ const assert = require('node:assert/strict');
       await page.setViewportSize(size);
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'No horizontal overflow');
       for (const id of moduleIds) {
-        await page.locator(`[data-route="${id}"]`).click();
-        await page.locator(`[data-route="${id}"][aria-current="page"]`).waitFor();
-        await page.locator('.integration-panel').waitFor();
-        assert.equal(await page.locator(`[data-route="${id}"]`).getAttribute('aria-current'), 'page');
-        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-        const link = page.locator('a.primary-button');
-        if (await link.count()) {
-          assert.match(await link.getAttribute('href'), /^https:\/\//);
-          assert.equal(await link.getAttribute('rel'), 'noopener noreferrer');
-          if (id === 'formulary') assert.equal(await link.getAttribute('href'), 'https://hsm-formulary.web.app/');
-          if (id === 'farmasi') assert.equal(await link.getAttribute('href'), 'https://farmasihsm.my.canva.site/ver2026/');
-        } else { assert.match(await page.locator('main').innerText(), /belum ditetapkan/); }
+        const card = page.locator(`.module-card.${id}`);
+        const shortcut = page.locator(`[data-route="${id}"]`);
+        for (const link of [card, shortcut]) {
+          assert.equal(await link.getAttribute('href'), config.modules[id].url || `#${id}`);
+          assert.equal(await link.getAttribute('target'), config.modules[id].url ? '_blank' : null);
+          if (config.modules[id].url) assert.equal(await link.getAttribute('rel'), 'noopener noreferrer');
+        }
+        if (config.modules[id].url && size.width === 1440) await verifyLaunch(card, config.modules[id].url);
+        if (config.modules[id].url && size.width === 390) await verifyLaunch(shortcut, config.modules[id].url);
       }
+      assert.equal(await page.locator('[data-route="dashboard"]').getAttribute('aria-current'), 'page');
       await page.locator('[data-route="dashboard"]').click();
       await page.locator('.module-card').first().waitFor();
     }
+    if (config.modules.formulary.url) await verifyLaunch(page.locator('.module-card.formulary'), config.modules.formulary.url, true);
     await page.emulateMedia({colorScheme:'light'});
     await page.reload();
     await page.locator('.module-card').first().waitFor();
@@ -65,8 +84,12 @@ const assert = require('node:assert/strict');
     await page.getByRole('heading', {name:'Halaman tidak dijumpai'}).waitFor();
     // Test missing-link states independently from the user's configured links.
     await page.route('**/config.json', route => route.fulfill({json:blankConfig}));
-    await page.goto(base + '/#myubat');
+    await page.goto(base + '/#dashboard');
     await page.reload();
+    await page.locator('.module-card.myubat').waitFor();
+    assert.equal(await page.locator('.module-card.myubat').getAttribute('target'), null);
+    assert.equal(await page.locator('[data-route="myubat"]').getAttribute('href'), '#myubat');
+    await page.locator('.module-card.myubat').click();
     await page.getByRole('heading', {name:'Pautan aplikasi belum ditetapkan'}).waitFor();
     assert.equal(await page.locator('a.primary-button').count(), 0);
     // Config failure, retry, and hostile static config handling.
@@ -81,6 +104,6 @@ const assert = require('node:assert/strict');
     await page.getByRole('alert').waitFor();
     assert.equal(await page.locator('a.primary-button').count(), 0);
     assert.deepEqual(errors, []);
-    console.log('Browser checks passed: five modules, logo/favicon, desktop/tablet/390px/320px layouts, light/dark/system themes, persisted preference, keyboard toggle, links, clock, missing configuration, failure/retry and unsafe configuration. Live applications not accessed.');
+    console.log('Browser checks passed: one-click launches for all five cards and mobile shortcuts, keyboard launch, Hub retained, isolated popups, logo/favicon, desktop/tablet/mobile layouts, themes, clock and error states. External application requests were intercepted; live integrations were not accessed.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode=1; });

@@ -9,7 +9,7 @@ A lightweight, responsive entry point for Farmasi Pesakit Luar, Hospital Seri Ma
 - Light/dark toggle in the header. The first visit follows the device theme; an explicit choice is remembered. Only the `fpl-hsm-theme` display preference is saved in browser storage.
 - Malaysia date and clock (`Asia/Kuala_Lumpur`), desktop sidebar and mobile bottom navigation.
 - Your five supplied URLs are configured in this machine's ignored `config/local.json` and in the published `docs/config.json`.
-- Each configured module opens its original application in a new tab; Hub remains open.
+- Each configured card, sidebar link and mobile shortcut opens its original application directly in one click in a new tab; Hub remains open. No intermediate confirmation page is required. Unconfigured links still show setup guidance.
 - Missing-link, configuration loading, retry, error and unknown-page states.
 - Keyboard focus, skip navigation and reduced-motion support.
 - No patient search forms, patient storage, analytics, backend proxy or data downloads in the Hub.

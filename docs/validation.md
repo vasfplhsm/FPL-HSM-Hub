@@ -2,6 +2,8 @@
 
 ## Automated checks
 
+One-click launch update: the browser suite clicks each configured dashboard card and each mobile shortcut once, verifies the exact destination opens in an isolated new tab and checks that the Hub stays on its dashboard. It also checks Enter-key launching and the safe missing-link fallback. All external popup requests are intercepted by the test before they reach the original applications.
+
 - `npm test`: configuration allowlist, unsafe URL rejection, local/fallback/malformed configuration handling, actual HTTP assets, headers, private-file denial and method restrictions.
 - `npm run build`: generates static assets and validated public configuration in `dist/`.
 - `CHROMIUM_PATH=/usr/bin/chromium node tests/browser.cjs`: real Chromium checks for dashboard, Malaysia clock, all five routes, exact new resource URLs, logo/favicon, active navigation, desktop/tablet and 390px/320px mobile overflow, link attributes, missing module links, unknown pages, configuration failure/retry and malicious URL rejection. Theme checks cover light/dark switching, keyboard toggle, persistence across reload, display-only storage and following device preference for a new visitor. Does not visit external applications.

@@ -13,24 +13,34 @@ const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', 
 const badge = module => `<span class="status ${module.url ? 'configured' : ''}"><span></span>${module.url ? 'Pautan tersedia' : 'Belum disambungkan'}</span>`;
 const ids = Object.keys(modules);
 
+function moduleLink(id) {
+  const url = config.modules[id].url;
+  return url ? `href="${escape(url)}" target="_blank" rel="noopener noreferrer"` : `href="#${id}"`;
+}
+
 function navigation() {
   document.querySelector('#navigation').innerHTML = [
     ['dashboard', 'Laman Utama'], ...ids.map(id => [id, modules[id].short])
-  ].map(([id, title]) => `<a href="#${id}" data-route="${id}" aria-label="${escape(title)}" title="${escape(title)}">${icon(id)}<span>${escape(title)}</span><span class="nav-arrow">›</span></a>`).join('');
+  ].map(([id, title]) => {
+    const external = id !== 'dashboard' && config.modules[id].url;
+    const label = `${title}${external ? ' (tab baharu)' : ''}`;
+    return `<a ${id === 'dashboard' ? 'href="#dashboard"' : moduleLink(id)} data-route="${id}" aria-label="${escape(label)}" title="${escape(label)}">${icon(id)}<span>${escape(title)}</span><span class="nav-arrow">${external ? icon('external') : '›'}</span></a>`;
+  }).join('');
 }
 
 function card(id, index) {
   const module = config.modules[id], detail = modules[id];
-  return `<a class="module-card ${id}" href="#${id}"><div class="card-top"><span class="module-icon">${icon(id)}</span><span class="card-number">0${index + 1}</span></div><span class="eyebrow">${detail.category}</span><h3>${escape(module.name)}</h3><p>${detail.description}</p><ul>${detail.features.map(f => `<li>${icon('check')}${f}</li>`).join('')}</ul><div class="card-bottom">${badge(module)}<span class="round-arrow">${icon('arrow')}</span></div></a>`;
+  const label = `${module.name}${module.url ? ' (tab baharu)' : ''}`;
+  return `<a class="module-card ${id}" ${moduleLink(id)} aria-label="${escape(label)}"><div class="card-top"><span class="module-icon">${icon(id)}</span><span class="card-number">0${index + 1}</span></div><span class="eyebrow">${detail.category}</span><h3>${escape(module.name)}</h3><p>${detail.description}</p><ul>${detail.features.map(f => `<li>${icon('check')}${f}</li>`).join('')}</ul><div class="card-bottom">${module.url ? '<span class="launch-label">Buka aplikasi</span>' : badge(module)}<span class="round-arrow">${icon(module.url ? 'external' : 'arrow')}</span></div></a>`;
 }
 
 function dashboard() {
   const count = ids.filter(id => config.modules[id].url).length;
   return `<div class="breadcrumb">Ruang kerja <span>/</span> Laman Utama</div>
     <section class="welcome"><div><div class="welcome-kicker"><span></span> SATU HUB, SEMUA KEPERLUAN</div><h1>Selamat datang ke<br><span>${escape(config.title)}</span></h1><p>Pusat akses aplikasi ${escape(config.department)}.<br>Lebih tersusun. Lebih mudah. Bersama untuk perkhidmatan yang lebih baik.</p></div><div class="welcome-side"><img class="welcome-logo" src="assets/fpl-hsm-logo.png" alt="Farmasi Pesakit Luar, Hospital Seri Manjung" width="124" height="124"><div class="date-panel">${icon('clock')}<span id="date"></span><strong id="time"></strong><small>Waktu Malaysia · GMT+8</small></div></div></section>
-    <div class="section-heading"><div><h2>Aplikasi &amp; sumber farmasi</h2><p>Pilih aplikasi untuk memulakan urusan anda.</p></div><span class="count-label">${ids.length} pautan utama</span></div>
+    <div class="section-heading"><div><h2>Aplikasi &amp; sumber farmasi</h2><p>Satu klik untuk membuka aplikasi dalam tab baharu.</p></div><span class="count-label">${ids.length} pautan utama</span></div>
     <section class="module-grid" aria-label="Aplikasi farmasi">${ids.map(card).join('')}</section>
-    <section class="lower-grid"><div class="guide-panel"><span class="small-icon">${icon('book')}</span><div><h2>Aliran kerja yang lebih mudah</h2><p>Pilih aplikasi, buka pautan asal dan teruskan urusan dengan akaun atau passkey sedia ada.</p><div class="steps"><span><b>1</b> Pilih aplikasi</span><span><b>2</b> Sahkan akses</span><span><b>3</b> Teruskan urusan</span></div></div></div><div class="connection-panel"><div class="section-heading"><h2>Status pautan</h2><span>${count} / ${ids.length}</span></div>${ids.map(id => `<div class="connection-row"><span>${icon(id)}${modules[id].short}</span><span class="connection-dot ${config.modules[id].url ? 'configured' : ''}"></span></div>`).join('')}<small>Status ini menunjukkan konfigurasi pautan, bukan ketersediaan pelayan.</small></div></section>
+    <section class="lower-grid"><div class="guide-panel"><span class="small-icon">${icon('book')}</span><div><h2>Aliran kerja yang lebih mudah</h2><p>Klik kad atau pintasan untuk terus membuka aplikasi asal dalam tab baharu. Gunakan akaun atau passkey sedia ada seperti biasa.</p><div class="steps"><span><b>1</b> Buka aplikasi</span><span><b>2</b> Sahkan akses</span><span><b>3</b> Teruskan urusan</span></div></div></div><div class="connection-panel"><div class="section-heading"><h2>Status pautan</h2><span>${count} / ${ids.length}</span></div>${ids.map(id => `<div class="connection-row"><span>${icon(id)}${modules[id].short}</span><span class="connection-dot ${config.modules[id].url ? 'configured' : ''}"></span></div>`).join('')}<small>Status ini menunjukkan konfigurasi pautan, bukan ketersediaan pelayan.</small></div></section>
     <div class="privacy-note">${icon('shield')}<p><strong>Privasi dalam setiap urusan.</strong> Hub ini tidak menyimpan rekod pesakit. Pengesahan dan kebenaran akses dikendalikan oleh setiap aplikasi asal.</p></div>`;
 }
 
@@ -58,7 +68,7 @@ function render(focus = false) {
   // Unknown hashes are never interpolated or sent to a backend.
   main.innerHTML = route === 'dashboard' ? dashboard() : ids.includes(route) ? modulePage(route) : '<section class="integration-panel"><h1>Halaman tidak dijumpai</h1><p>Sila pilih aplikasi melalui navigasi.</p><a class="primary-button" href="#dashboard">Kembali ke Laman Utama</a></section>';
   document.querySelectorAll('[data-route]').forEach(link => {
-    if (link.dataset.route === route) link.setAttribute('aria-current', 'page');
+    if (link.dataset.route === route && link.target !== '_blank') link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
   document.title = `${valid && route !== 'dashboard' ? modules[route].short : 'Laman Utama'} | ${config.title}`;
